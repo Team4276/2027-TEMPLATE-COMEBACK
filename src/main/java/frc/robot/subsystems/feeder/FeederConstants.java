@@ -57,7 +57,7 @@ public class FeederConstants {
 				@Override
 				public void updateInputs() {
 				};
-			}; // TODO test log replay
+			};
 		};
 	}
 

@@ -14,6 +14,7 @@ import frc.robot.Robot;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.superstructure.Superstructure;
 
 public class ControlBoard extends SubsystemBase {
 	public static final ControlBoard mInstance = new ControlBoard();
@@ -29,10 +30,10 @@ public class ControlBoard extends SubsystemBase {
 		Drive.mInstance.setDefaultCommand(Drive.mInstance.drive(DriveConstants.kTeleopRequestUpdater));
 
 		mDriver.back()
-		.onTrue(Commands.runOnce(
-		() -> Drive.mInstance.zeroGyro(),
-		Drive.mInstance)
-		.ignoringDisable(true));
+				.onTrue(Commands.runOnce(
+						() -> Drive.mInstance.zeroGyro(),
+						Drive.mInstance)
+						.ignoringDisable(true));
 
 		mDriver.start()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
@@ -48,6 +49,38 @@ public class ControlBoard extends SubsystemBase {
 	}
 
 	public void driverControls() {
+		// Shooter/Feeder Controls
+		mDriver.a()
+				.onTrue(Superstructure.mInstance.shootHub());
+		mDriver.y()
+				.onTrue(Superstructure.mInstance.shootHubFar());
+		mDriver.x()
+				.onTrue(Superstructure.mInstance.ferry());
+
+		mDriver.rightTrigger()
+				.onTrue(Superstructure.mInstance.feed());
+
+		mDriver.rightBumper()
+				.onTrue(Superstructure.mInstance.idleFlywheels()
+						.alongWith(Superstructure.mInstance.idleFeeders()));
+
+		// Intake Controls
+		mDriver.leftTrigger()
+				.onTrue(Superstructure.mInstance.runIntake());
+		mDriver.leftBumper()
+				.onTrue(Superstructure.mInstance.exhaustIntake());
+
+		mDriver.b()
+				.onTrue(Superstructure.mInstance.retractIntake());
+		mDriver.getHID().povUp()
+				.onTrue(Superstructure.mInstance.deployIntake());
+
+		mDriver.leftTrigger().negate()
+				.and(mDriver.leftBumper().negate())
+				.and(mDriver.b().negate())
+				.and(mDriver.getHID().povUp().negate())
+				.onTrue(Superstructure.mInstance.idleIntake());
+
 	}
 
 	public void bringupControls() {

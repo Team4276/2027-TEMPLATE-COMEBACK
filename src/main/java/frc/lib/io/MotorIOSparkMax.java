@@ -23,7 +23,7 @@ import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.Dimensionless;
 import org.wpilib.units.measure.Voltage;
 import org.wpilib.hardware.bus.CANPort;
-import org.wpilib.system.Timer;
+// import org.wpilib.system.Timer;
 // import org.wpilib.smartdashboard.SmartDashboard;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -264,7 +264,7 @@ public class MotorIOSparkMax extends MotorIO {
 	 */
 	public MotorIOSparkMax(MotorIOSparkMaxConfig config) {
 		super(config.unit, config.time, config.followerIDs.length);
-		main = new SparkMax(config.canPort, config.mainID, MotorType.kBrushless); // TODO: add buses
+		main = new SparkMax(config.canPort, config.mainID, MotorType.kBrushless);
 		setMainConfig(config.mainConfig);
 
 		followers = new SparkMax[config.followerIDs.length];
