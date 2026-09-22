@@ -1,8 +1,5 @@
 package frc.robot.controlboard;
 
-import static org.wpilib.units.Units.Milliseconds;
-import static org.wpilib.units.Units.Volts;
-
 import org.wpilib.units.Units;
 import org.wpilib.units.measure.Time;
 import org.wpilib.driverstation.internal.DriverStationBackend;
@@ -13,15 +10,10 @@ import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.CommandGenericHID;
 import org.wpilib.command2.button.CommandNiDsXboxController;
 import frc.lib.hid.ViXController;
-import frc.lib.io.MotorIO.Mode;
-import frc.lib.io.MotorIO.Setpoint;
-import frc.lib.util.ControllerUtil;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.examplesubsystem.ExampleSubsystem;
-import frc.robot.subsystems.superstructure.Superstructure;
 
 public class ControlBoard extends SubsystemBase {
 	public static final ControlBoard mInstance = new ControlBoard();
@@ -56,34 +48,12 @@ public class ControlBoard extends SubsystemBase {
 	}
 
 	public void driverControls() {
-		// mKeyboard0.button(1)
-		// .onTrue(Superstructure.mInstance.exampleCommand().onlyWhile(mKeyboard0.button(1)));
-		// mKeyboard0.button(2)
-		// .onTrue(Superstructure.mInstance.testCommand().onlyWhile(mKeyboard0.button(2)));
-
-		mDriver.a()
-				.onTrue(Superstructure.mInstance.setOn());
-
-		mDriver.b()
-				.onTrue(Superstructure.mInstance.setOff());
 	}
 
 	public void bringupControls() {
-		mDriver.a().onTrue(ExampleSubsystem.mInstance.setpointCommand(ExampleSubsystem.EXAMPLE_SETPOINT));
 	}
 
 	public void jogControls() {
-		ControllerUtil.bindJog(
-				ExampleSubsystem.mInstance,
-				Volts.of(0.01).baseUnitMagnitude(),
-				Volts.of(0.0).baseUnitMagnitude(),
-				Volts.of(12.0).baseUnitMagnitude(),
-				Mode.VOLTAGE,
-				Setpoint.withNeutralSetpoint(),
-				Milliseconds.of(50.0),
-				mOperator.a(),
-				mOperator.b(),
-				mOperator.rightBumper());
 	}
 
 	public void tuningControls() {

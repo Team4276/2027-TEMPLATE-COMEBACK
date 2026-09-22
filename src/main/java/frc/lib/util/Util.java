@@ -8,14 +8,12 @@ import org.wpilib.math.util.MathUtil;
 import org.wpilib.util.Pair;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
-import org.wpilib.math.geometry.Transform2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Translation3d;
 import org.wpilib.math.interpolation.InterpolatingTreeMap;
 import org.wpilib.math.interpolation.Interpolator;
 import org.wpilib.math.interpolation.InverseInterpolator;
 import org.wpilib.math.kinematics.ChassisVelocities;
-import org.wpilib.math.trajectory.Trajectory;
 // import org.wpilib.math.trajectory.Trajectory.State;
 import org.wpilib.units.AngleUnit;
 import org.wpilib.units.BaseUnits;
@@ -31,8 +29,6 @@ import org.wpilib.units.measure.Time;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
 import org.wpilib.command2.Subsystem;
-import org.wpilib.driverstation.internal.DriverStationBackend;
-
 // import frc.lib.util.axis3d.TranslationAxis3d;
 // import frc.lib.util.builder.Transform3dObjectBuilder;
 import java.util.ArrayList;
@@ -43,8 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
-
-import org.littletonrobotics.junction.Logger;
 
 /**
  * Contains basic functions that are used often.

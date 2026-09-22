@@ -1,14 +1,12 @@
-package frc.robot.subsystems.flywheels;
+package frc.robot.subsystems.intake;
 
-import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import org.wpilib.math.system.DCMotor;
 import org.wpilib.units.Units;
-import org.wpilib.units.measure.AngularVelocity;
-import org.wpilib.units.measure.Time;
+import org.wpilib.units.measure.Voltage;
 import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIOTalonFX;
 import frc.lib.io.MotorIOTalonFXSim;
@@ -19,38 +17,26 @@ import frc.robot.Ports;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
 
-public class FlywheelConstants {
-    public static final double kGearing = 1.0;
-
-    // TODO: acceptable velocity error before considered "at speed"
-    public static final AngularVelocity kEpsilonThreshold = Units.RPM.of(50.0);
-
-    // TODO: debounce time for spunUpDebounced()
-    public static final Time kDebounceTime = Units.Seconds.of(0.2);
-
-    public static final AngularVelocity kShowerVelocity = Units.RPM.of(2700.0);
-    public static final AngularVelocity kShubVelocity = Units.RPM.of(2500.0);
-    public static final AngularVelocity kSherryVelocity = Units.RPM.of(3000.0);
+public class IntakeRollersConstants {
+    public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
+    public static final Voltage kIntakeVoltage = Units.Volts.of(12.0);
+    public static final Voltage kExhaustVoltage = Units.Volts.of(-12.0);
 
     public static TalonFXConfiguration getFXConfig() {
         TalonFXConfiguration config = new TalonFXConfiguration();
 
         config.CurrentLimits.StatorCurrentLimitEnable = Robot.isReal();
-        config.CurrentLimits.StatorCurrentLimit = 80.0;
+        config.CurrentLimits.StatorCurrentLimit = 40.0;
 
         config.CurrentLimits.SupplyCurrentLimitEnable = Robot.isReal();
-        config.CurrentLimits.SupplyCurrentLimit = 80.0;
-        config.CurrentLimits.SupplyCurrentLowerLimit = 50.0;
+        config.CurrentLimits.SupplyCurrentLimit = 40.0;
+        config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
         config.CurrentLimits.SupplyCurrentLowerTime = 0.1;
 
         config.Voltage.PeakForwardVoltage = 12.0;
         config.Voltage.PeakReverseVoltage = -12.0;
 
-        config.Slot0.kP = 0.0001;
-
-        config.Feedback.SensorToMechanismRatio = kGearing;
-
-        config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         return config;
@@ -60,12 +46,9 @@ public class FlywheelConstants {
         MotorIOTalonFXConfig config = new MotorIOTalonFXConfig();
         config.unit = Units.Rotations;
         config.time = Units.Minutes;
-        config.mainID = Ports.FLYWHEEL_LEFT.id;
-        config.mainBus = Ports.FLYWHEEL_LEFT.bus;
+        config.mainID = Ports.INTAKE_ROLLERS.id;
+        config.mainBus = Ports.INTAKE_ROLLERS.bus;
         config.mainConfig = getFXConfig();
-        config.followerIDs = new int[]{Ports.FLYWHEEL_RIGHT.id};
-        config.followerConfig = getFXConfig();
-        config.followerBuses = new CANBus[]{Ports.FLYWHEEL_RIGHT.bus};
         return config;
     }
 
@@ -84,9 +67,8 @@ public class FlywheelConstants {
     public static RollerSimConstants getSimConstants() {
         RollerSimConstants simConstants = new RollerSimConstants();
 
-        simConstants.motor = DCMotor.getKrakenX60(2);
-        simConstants.gearing = kGearing;
-        // TODO: moment of inertia (kg*m^2)
+        simConstants.motor = DCMotor.getKrakenX60(1);
+        simConstants.gearing = 1.0;
         simConstants.momentOfInertia = 0.01;
 
         return simConstants;

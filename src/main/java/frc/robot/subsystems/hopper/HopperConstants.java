@@ -56,7 +56,7 @@ public class HopperConstants {
 				@Override
 				public void updateInputs() {
 				};
-			}; // TODO test log replay
+			};
 		};
 	}
 

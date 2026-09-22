@@ -1,10 +1,5 @@
 package frc.lib.hid;
 
-import org.wpilib.driverstation.POVDirection;
-import org.wpilib.driverstation.GenericHID.RumbleType;
-import org.wpilib.command2.Command;
-import org.wpilib.command2.Commands;
-import org.wpilib.command2.SequentialCommandGroup;
 import org.wpilib.command2.button.CommandNiDsXboxController;
 
 public class ViXController extends CommandNiDsXboxController implements JoystickOutputController {

@@ -3,7 +3,6 @@ package frc.robot.auto.autos;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoTrajectory;
 import org.wpilib.math.geometry.Pose2d;
-import frc.robot.auto.AutoHelpers;
 import frc.robot.auto.AutoModeBase;
 
 public class ExampleAuto extends AutoModeBase {
@@ -16,9 +15,10 @@ public class ExampleAuto extends AutoModeBase {
 
 		prepRoutine(
 				startToFirstPOI.cmd(),
-				AutoHelpers.exampleCommand(),
-				firstPOIToSecondPOI.cmd(),
-				AutoHelpers.exampleCommand());
+				// AutoHelpers.exampleCommand(),
+				firstPOIToSecondPOI.cmd()
+				// AutoHelpers.exampleCommand()
+			);
 	}
 
 	@Override
