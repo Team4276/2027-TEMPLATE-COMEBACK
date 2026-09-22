@@ -47,8 +47,8 @@ public class ExampleSubsystemConstants {
 		MotorIOTalonFXConfig config = new MotorIOTalonFXConfig();
 		config.unit = Units.Rotations;
 		config.time = Units.Minutes;
-		config.mainID = Ports.EXAMPLE_SUBSYSTEM.id;
-		config.mainBus = Ports.EXAMPLE_SUBSYSTEM.bus;
+		// config.mainID = Ports.EXAMPLE_SUBSYSTEM.id;
+		// config.mainBus = Ports.EXAMPLE_SUBSYSTEM.bus;
 		return config;
 	}
 
