@@ -19,15 +19,20 @@ public class SwerveDrive {
     private final SwerveModule[] modules;
     private final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(DriveConstants.kModuleTranslations);
 
-    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(kinematics, Rotation2d.ZERO, getModulePositions());
+    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(kinematics, Rotation2d.ZERO,
+            getModulePositions());
     private final Pigeon2 gyro = new Pigeon2(Ports.PIGEON.id, Ports.PIGEON.bus);
 
-    public SwerveDrive(){
-        modules = new SwerveModule[]{
-            new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_LEFT_DRIVE), DriveConstants.getTurnIOConfig(Ports.FRONT_LEFT_TURN)),
-            new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_RIGHT_DRIVE), DriveConstants.getTurnIOConfig(Ports.FRONT_RIGHT_TURN)),
-            new SwerveModule(DriveConstants.getDriveIOConfig(Ports.BACK_LEFT_DRIVE), DriveConstants.getTurnIOConfig(Ports.BACK_LEFT_TURN)),
-            new SwerveModule(DriveConstants.getDriveIOConfig(Ports.BACK_RIGHT_DRIVE), DriveConstants.getTurnIOConfig(Ports.BACK_RIGHT_TURN)),
+    public SwerveDrive() {
+        modules = new SwerveModule[] {
+                new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_LEFT_DRIVE),
+                        DriveConstants.getTurnIOConfig(Ports.FRONT_LEFT_TURN), DriveConstants.turnOffsets[0]),
+                new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_RIGHT_DRIVE),
+                        DriveConstants.getTurnIOConfig(Ports.FRONT_RIGHT_TURN), DriveConstants.turnOffsets[1]),
+                new SwerveModule(DriveConstants.getDriveIOConfig(Ports.BACK_LEFT_DRIVE),
+                        DriveConstants.getTurnIOConfig(Ports.BACK_LEFT_TURN), DriveConstants.turnOffsets[2]),
+                new SwerveModule(DriveConstants.getDriveIOConfig(Ports.BACK_RIGHT_DRIVE),
+                        DriveConstants.getTurnIOConfig(Ports.BACK_RIGHT_TURN), DriveConstants.turnOffsets[3]),
         };
     }
 
@@ -35,11 +40,11 @@ public class SwerveDrive {
         odometry.update(new Rotation2d(getGyroAngle()), getModulePositions());
     }
 
-    public Pose2d getPose(){
+    public Pose2d getPose() {
         return odometry.getPose();
     }
 
-    public Angle getGyroAngle(){
+    public Angle getGyroAngle() {
         return gyro.getYaw(true).getValue();
     }
 

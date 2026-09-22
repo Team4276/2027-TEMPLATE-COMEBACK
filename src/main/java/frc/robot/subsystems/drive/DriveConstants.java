@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drive;
 
+import static org.wpilib.units.Units.Degrees;
 import static org.wpilib.units.Units.MetersPerSecond;
 import static org.wpilib.units.Units.RadiansPerSecond;
 
@@ -9,6 +10,7 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.util.Units;
+import org.wpilib.units.measure.Angle;
 import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
 
@@ -38,6 +40,13 @@ public class DriveConstants {
             new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
             new Translation2d(-trackWidth / 2.0, wheelBase / 2.0),
             new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
+    };
+    
+    public static final Angle[] turnOffsets = {
+            Angle.ofBaseUnits(101.8, Degrees), // FL
+            Angle.ofBaseUnits(175.2, Degrees), // FR
+            Angle.ofBaseUnits(8.1, Degrees), // BL
+            Angle.ofBaseUnits(148.6, Degrees) // BR
     };
     
     public static final double wheelRadiusMeters = Units.inchesToMeters(1.47);
