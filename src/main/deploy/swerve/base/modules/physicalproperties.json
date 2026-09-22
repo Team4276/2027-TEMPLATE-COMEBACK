@@ -1,0 +1,16 @@
+{
+  "$schema": "https://config.yagsl.com/schemas/physicalproperties.json",
+  "gearing": {
+    "drive": {
+      "gearRatio": 4.714,
+      "diameter": 3
+    },
+    "angle": {
+      "gearRatio": 46.424
+    }
+  },
+  "statorCurrentLimit": {
+    "drive": 50,
+    "angle": 20
+  }
+}
