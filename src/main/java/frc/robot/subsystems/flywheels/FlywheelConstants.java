@@ -3,6 +3,7 @@ package frc.robot.subsystems.flywheels;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import org.wpilib.math.system.DCMotor;
@@ -60,12 +61,13 @@ public class FlywheelConstants {
         MotorIOTalonFXConfig config = new MotorIOTalonFXConfig();
         config.unit = Units.Rotations;
         config.time = Units.Minutes;
-        config.mainID = Ports.FLYWHEEL_LEFT.id;
-        config.mainBus = Ports.FLYWHEEL_LEFT.bus;
+        config.mainID = Ports.FLYWHEEL_RIGHT.id;
+        config.mainBus = Ports.FLYWHEEL_RIGHT.bus;
         config.mainConfig = getFXConfig();
-        config.followerIDs = new int[]{Ports.FLYWHEEL_RIGHT.id};
+        config.followerIDs = new int[]{Ports.FLYWHEEL_LEFT.id};
         config.followerConfig = getFXConfig();
-        config.followerBuses = new CANBus[]{Ports.FLYWHEEL_RIGHT.bus};
+        config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
+        config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Aligned };
         return config;
     }
 

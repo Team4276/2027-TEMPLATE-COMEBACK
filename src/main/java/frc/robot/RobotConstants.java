@@ -25,7 +25,7 @@ public class RobotConstants {
         SIMBOT
     }
 
-    public static Mode mode = Mode.SIM;
+    public static Mode mode = Mode.REAL;
 
     public static RobotType getType() {
         return switch (mode) {
