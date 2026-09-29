@@ -10,7 +10,7 @@ public class ControlBoardConstants {
 		DEMO
 	}
 
-	public static final InputMode kInputMode = InputMode.KEYBOARD;
+	public static final InputMode kInputMode = InputMode.CONTROLLER;
 
 	public static final int kDriverControllerPort = 0;
 	public static final int kOperatorControllerPort = 1;
