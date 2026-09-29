@@ -21,12 +21,12 @@ public enum Ports {
     INTAKE_ROLLERS(11, CANPort.CAN_S2),
 
     /* Feeder */
-    FEEDER(12, CANPort.CAN_S2),
-    HOPPER(13, CANPort.CAN_S2),
+    FEEDER(12, CANPort.CAN_S3),
+    HOPPER(13, CANPort.CAN_S3),
 
     /* Shooter */
-    FLYWHEEL_LEFT(14, CANPort.CAN_S2),
-    FLYWHEEL_RIGHT(15, CANPort.CAN_S2),
+    FLYWHEEL_LEFT(14, CANPort.CAN_S3),
+    FLYWHEEL_RIGHT(15, CANPort.CAN_S3),
 
     ;
 
