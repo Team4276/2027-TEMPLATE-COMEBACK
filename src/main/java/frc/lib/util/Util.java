@@ -115,7 +115,7 @@ public class Util {
 	}
 
 	public static boolean epsilonEquals(Translation2d a, Translation2d b) {
-		return epsilonEquals(a.getX(), b.getX()) || epsilonEquals(a.getY(), b.getY());
+		return epsilonEquals(a.getX(), b.getX()) && epsilonEquals(a.getY(), b.getY());
 	}
 
 	public static boolean epsilonEquals(Translation2d a, Translation2d b, double epsilon) {
@@ -135,7 +135,8 @@ public class Util {
 
 	public static boolean epsilonEquals(ChassisVelocities a, ChassisVelocities b, double linearVelocityEpsilon) {
 		return epsilonEquals(a.vx, b.vx, linearVelocityEpsilon)
-				&& epsilonEquals(a.vy, b.vy, linearVelocityEpsilon);
+				&& epsilonEquals(a.vy, b.vy, linearVelocityEpsilon)
+				&& epsilonEquals(a.omega, b.omega, linearVelocityEpsilon);
 	}
 
 	public static boolean safeEqualsCheck(Object a, Object b) {
