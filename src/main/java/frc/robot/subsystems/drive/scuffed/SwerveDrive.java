@@ -53,7 +53,7 @@ public class SwerveDrive {
     }
 
     public ChassisVelocities getFieldRelativeVelocity() {
-        return getFieldRelativeVelocity().toFieldRelative(new Rotation2d(getGyroAngle()));
+        return getRobotRelativeVelocity().toFieldRelative(new Rotation2d(getGyroAngle()));
     }
 
     public SwerveModulePosition[] getModulePositions() {
