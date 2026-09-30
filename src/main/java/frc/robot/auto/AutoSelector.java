@@ -6,6 +6,8 @@ import choreo.auto.AutoRoutine;
 import org.wpilib.math.geometry.Pose2d;
 
 import java.util.function.Supplier;
+import java.nio.file.Files;
+import org.wpilib.system.Filesystem;
 
 import org.littletonrobotics.junction.networktables.LoggedNetworkChooser;
 import org.wpilib.command2.Command;
@@ -18,11 +20,21 @@ public class AutoSelector {
     private Pose2d startPose = new Pose2d();
 
     public AutoSelector(AutoFactory autoFactory) {
-        mAutoChooser.addRoutine("Example Auto", () -> generateAuto(new ExampleAuto(autoFactory)));
-        mAutoChooser.addRoutine("Do Nothing", () -> autoFactory.newRoutine("Do Nothing"));
+        Supplier<AutoRoutine> doNothing = () -> {
+            startPose = new Pose2d();
+            return autoFactory.newRoutine("Do Nothing");
+        };
+        mAutoChooser.addRoutine("Do Nothing", doNothing);
+        mNetworkChooser.addDefault("Do Nothing", doNothing);
 
-        mNetworkChooser.add("Example Auto", () -> generateAuto(new ExampleAuto(autoFactory)));
-        mNetworkChooser.add("Do Nothing", () -> autoFactory.newRoutine("Do Nothing"));
+        // The template ships without paths. Only offer the example when both are deployed.
+        var choreoDirectory = Filesystem.getDeployDirectory().toPath().resolve("choreo");
+        if (Files.isRegularFile(choreoDirectory.resolve("startToFirstPOI.traj"))
+                && Files.isRegularFile(choreoDirectory.resolve("firstPOIToSecondPOI.traj"))) {
+            Supplier<AutoRoutine> example = () -> generateAuto(new ExampleAuto(autoFactory));
+            mAutoChooser.addRoutine("Example Auto", example);
+            mNetworkChooser.add("Example Auto", example);
+        }
     }
 
     private AutoRoutine generateAuto(AutoModeBase auto) {
@@ -44,6 +56,7 @@ public class AutoSelector {
     }
 
     public Pose2d getSelectedAutoStartingPose() {
+        mNetworkChooser.get().get();
         return startPose;
     }
 }

@@ -43,10 +43,10 @@ public class DriveConstants {
     };
     
     public static final Angle[] turnOffsets = {
-            Angle.ofBaseUnits(101.8, Degrees), // FL
-            Angle.ofBaseUnits(175.2, Degrees), // FR
-            Angle.ofBaseUnits(8.1, Degrees), // BL
-            Angle.ofBaseUnits(148.6, Degrees) // BR
+            Degrees.of(101.8), // FL
+            Degrees.of(175.2), // FR
+            Degrees.of(8.1), // BL
+            Degrees.of(148.6) // BR
     };
     
     public static final double wheelRadiusMeters = Units.inchesToMeters(1.47);
@@ -122,7 +122,7 @@ public class DriveConstants {
         config.unit = org.wpilib.units.Units.Rotations;
         config.time = org.wpilib.units.Units.Minutes;
         config.useAbsoluteEncoder = true;
-        config.velocityConversionFactor = 60.0; // For some reason absolute encoder native units is RPM
+        config.velocityConversionFactor = 1.0; // MotorIOSparkMax converts native RPM to base units.
         config.mainID = port.id;
         config.mainConfig = getSparkConfig();
         config.canPort = port.canPort;

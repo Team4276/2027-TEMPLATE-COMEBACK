@@ -127,7 +127,7 @@ public class ServoMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<IO> 
 	 *         in position control.
 	 */
 	public boolean nearPositionSetpoint() {
-		return (getSetpoint().mode.isPositionControl()) && nearPosition(getPosition());
+		return (getSetpoint().mode.isPositionControl()) && nearPosition(BaseUnits.AngleUnit.of(getSetpoint().baseUnits));
 	}
 
 	/**
