@@ -33,7 +33,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command exhaustIntake() {
-        return setIntake(IntakeDeploy.IDLE, IntakeRollers.INTAKE)
+        return setIntake(IntakeDeploy.IDLE, IntakeRollers.EXHAUST)
                 .withName("Idle Intake");
     }
 

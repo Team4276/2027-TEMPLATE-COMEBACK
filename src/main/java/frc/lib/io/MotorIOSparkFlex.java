@@ -1,8 +1,7 @@
 package frc.lib.io;
 
-import static org.wpilib.units.Units.Percent;
 import static org.wpilib.units.Units.Rotations;
-import static org.wpilib.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.RPM;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.revrobotics.PersistMode;
@@ -41,6 +40,8 @@ public class MotorIOSparkFlex extends MotorIO {
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
 	private boolean configFailed = false;
+	private double positionFactor = 1.0;
+	private double velocityFactor = 1.0;
 
 	public void applyConfig(SparkFlex spark, SparkFlexConfig config) {
 		threadPoolExecutor.submit(() -> {
@@ -62,8 +63,8 @@ public class MotorIOSparkFlex extends MotorIO {
 		inputs.setPointType = Mode.IDLE;
 		inputs.setPointValueAsDouble = 0.0;
 
-		inputs.position[0] = main.getEncoder().getPosition().get();
-		inputs.velocity[0] = main.getEncoder().getVelocity().get();
+		inputs.position[0] = Rotations.of(main.getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
+		inputs.velocity[0] = RPM.of(main.getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 		inputs.statorCurrent[0] = main.getOutputCurrent().get();
 		inputs.supplyCurrent[0] = main.getOutputCurrent().get();
 		inputs.motorVoltage[0] = main.getBusVoltage().get() * main.getAppliedOutput().get();
@@ -71,8 +72,8 @@ public class MotorIOSparkFlex extends MotorIO {
 		inputs.acceleration[0] = 0.0;
 
 		for (int i = 0; i < followers.length; i++) {
-			inputs.position[i + 1] = followers[i].getEncoder().getPosition().get();
-			inputs.velocity[i + 1] = followers[i].getEncoder().getVelocity().get();
+			inputs.position[i + 1] = Rotations.of(followers[i].getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
+			inputs.velocity[i + 1] = RPM.of(followers[i].getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 			inputs.statorCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.supplyCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.motorVoltage[i + 1] = followers[i].getBusVoltage().get() * followers[i].getAppliedOutput().get();
@@ -131,7 +132,7 @@ public class MotorIOSparkFlex extends MotorIO {
 
 	@Override
 	protected void setDutyCycleSetpoint(Dimensionless percent) {
-		main.setThrottle(percent.in(Percent));
+		main.setThrottle(percent.baseUnitMagnitude());
 	}
 
 	@Override
@@ -141,7 +142,7 @@ public class MotorIOSparkFlex extends MotorIO {
 
 	@Override
 	protected void setMotionMagicSetpoint(Angle mechanismPosition, int slot) {
-		main.getClosedLoopController().setSetpoint(mechanismPosition.in(Rotations),
+		main.getClosedLoopController().setSetpoint(mechanismPosition.div(positionFactor).in(Rotations),
 				ControlType.kMAXMotionPositionControl, ClosedLoopSlot.fromInt(slot));
 	}
 
@@ -152,7 +153,7 @@ public class MotorIOSparkFlex extends MotorIO {
 
 	@Override
 	protected void setVelocitySetpoint(AngularVelocity mechanismVelocity, int slot) {
-		main.getClosedLoopController().setSetpoint(mechanismVelocity.in(RotationsPerSecond), ControlType.kVelocity,
+		main.getClosedLoopController().setSetpoint(mechanismVelocity.div(velocityFactor).in(RPM), ControlType.kVelocity,
 				ClosedLoopSlot.fromInt(slot));
 	}
 
@@ -163,14 +164,14 @@ public class MotorIOSparkFlex extends MotorIO {
 
 	@Override
 	protected void setPositionSetpoint(Angle mechanismPosition, int slot) {
-		main.getClosedLoopController().setSetpoint(mechanismPosition.in(Rotations), ControlType.kPosition,
+		main.getClosedLoopController().setSetpoint(mechanismPosition.div(positionFactor).in(Rotations), ControlType.kPosition,
 				ClosedLoopSlot.fromInt(slot));
 	}
 
 	@Override
 	public void setCurrentPosition(Angle mechanismPosition) {
 		threadPoolExecutor.submit(() -> {
-			main.getEncoder().setPosition(mechanismPosition.in(Rotations));
+			main.getEncoder().setPosition(mechanismPosition.div(positionFactor).in(Rotations));
 		});
 	}
 
@@ -256,12 +257,16 @@ public class MotorIOSparkFlex extends MotorIO {
 		super(config.unit, config.time, config.followerIDs.length);
 		main = new SparkFlex(config.canPort, config.mainID, MotorType.kBrushless);
 		setMainConfig(config.mainConfig);
+		positionFactor = config.positionConversionFactor;
+		velocityFactor = config.velocityConversionFactor;
 
+		followerConfig = config.followerConfig;
 		followers = new SparkFlex[config.followerIDs.length];
 		for (int i = 0; i < config.followerIDs.length; i++) {
 			followers[i] = new SparkFlex(config.canPort, config.followerIDs[i], MotorType.kBrushless);
-			followerConfig.follow(main, config.followerInverted[i]);
-			applyConfig(followers[i], followerConfig);
+			SparkFlexConfig motorConfig = new SparkFlexConfig();
+			motorConfig.apply(followerConfig).follow(main, config.followerInverted[i]);
+			applyConfig(followers[i], motorConfig);
 		}
 	}
 

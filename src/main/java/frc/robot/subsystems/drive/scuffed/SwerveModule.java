@@ -10,9 +10,10 @@ import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
 import org.wpilib.units.measure.Angle;
-import org.wpilib.units.measure.AngularVelocity;
+
 
 import frc.lib.io.MotorIOSparkMax;
+import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIOTalonFX;
 import frc.lib.io.MotorIO.Setpoint;
 import frc.lib.io.MotorIOSparkMax.MotorIOSparkMaxConfig;
@@ -27,32 +28,43 @@ public class SwerveModule {
         BACK_RIGHT
     }
 
-    public final MotorIOTalonFX mDriveFx;
-    public final MotorIOSparkMax mTurnSpark;
+    public final MotorIO mDriveFx;
+    public final MotorIO mTurnSpark;
     public final Angle mTurnOffset;
+    private final double wheelRadiusMeters;
 
     public SwerveModule(MotorIOTalonFXConfig driveConfig, MotorIOSparkMaxConfig turnConfig, Angle turnOffset) {
-        mDriveFx = new MotorIOTalonFX(driveConfig);
-        mTurnSpark = new MotorIOSparkMax(turnConfig);
+        this(new MotorIOTalonFX(driveConfig), new MotorIOSparkMax(turnConfig),
+                turnOffset, DriveConstants.wheelRadiusMeters);
+    }
+
+    SwerveModule(MotorIO drive, MotorIO turn, Angle turnOffset, double wheelRadiusMeters) {
+        mDriveFx = drive;
+        mTurnSpark = turn;
         mTurnOffset = turnOffset;
+        this.wheelRadiusMeters = wheelRadiusMeters;
+    }
+
+    public void updateInputs() {
+        mDriveFx.updateInputs();
+        mTurnSpark.updateInputs();
     }
 
     public void setVelocity(SwerveModuleVelocity velocity) {
-        mDriveFx.applySetpoint(Setpoint.withVelocitySetpoint(AngularVelocity
-                .ofBaseUnits(velocity.velocity / (2 * Math.PI * DriveConstants.wheelRadiusMeters),
-                        RotationsPerSecond)));
-        mTurnSpark.applySetpoint(Setpoint.withPositionSetpoint(velocity.angle.getMeasure().plus(mTurnOffset)));
+        mDriveFx.applySetpoint(Setpoint.withVelocitySetpoint(
+                RotationsPerSecond.of(velocity.velocity / (2 * Math.PI * wheelRadiusMeters)), 0));
+        mTurnSpark.applySetpoint(Setpoint.withPositionSetpoint(velocity.angle.getMeasure().plus(mTurnOffset), 0));
     }
 
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
-                Meters.of(mDriveFx.getPosition().in(Radians) * DriveConstants.wheelRadiusMeters),
+                Meters.of(mDriveFx.getPosition().in(Radians) * wheelRadiusMeters),
                 new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset)));
     }
 
     public SwerveModuleVelocity getVelocity() {
         return new SwerveModuleVelocity(
-                MetersPerSecond.of(mDriveFx.getVelocity().in(RadiansPerSecond) * DriveConstants.wheelRadiusMeters),
+                MetersPerSecond.of(mDriveFx.getVelocity().in(RadiansPerSecond) * wheelRadiusMeters),
                 new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset)));
     }
 }

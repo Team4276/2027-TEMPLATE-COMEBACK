@@ -1,8 +1,7 @@
 package frc.lib.io;
 
-import static org.wpilib.units.Units.Percent;
 import static org.wpilib.units.Units.Rotations;
-import static org.wpilib.units.Units.RotationsPerSecond;
+import static org.wpilib.units.Units.RPM;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.revrobotics.PersistMode;
@@ -67,11 +66,11 @@ public class MotorIOSparkMax extends MotorIO {
 		inputs.setPointValueAsDouble = 0.0;
 
 		if (!useAbsoluteEncoder) {
-			inputs.position[0] = main.getEncoder().getPosition().get() * positionFactor;
-			inputs.velocity[0] = main.getEncoder().getVelocity().get() * velocityFactor;
+			inputs.position[0] = Rotations.of(main.getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
+			inputs.velocity[0] = RPM.of(main.getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 		} else {
-			inputs.position[0] = main.getAbsoluteEncoder().getPosition().get() * positionFactor;
-			inputs.velocity[0] = main.getAbsoluteEncoder().getVelocity().get() * velocityFactor;
+			inputs.position[0] = Rotations.of(main.getAbsoluteEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
+			inputs.velocity[0] = RPM.of(main.getAbsoluteEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 		}
 		inputs.statorCurrent[0] = main.getOutputCurrent().get();
 		inputs.supplyCurrent[0] = main.getOutputCurrent().get();
@@ -80,8 +79,8 @@ public class MotorIOSparkMax extends MotorIO {
 		inputs.acceleration[0] = 0.0;
 
 		for (int i = 0; i < followers.length; i++) {
-			inputs.position[i + 1] = followers[i].getEncoder().getPosition().get() * positionFactor;
-			inputs.velocity[i + 1] = followers[i].getEncoder().getVelocity().get() * velocityFactor;
+			inputs.position[i + 1] = Rotations.of(followers[i].getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
+			inputs.velocity[i + 1] = RPM.of(followers[i].getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 			inputs.statorCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.supplyCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.motorVoltage[i + 1] = followers[i].getBusVoltage().get() * followers[i].getAppliedOutput().get();
@@ -140,7 +139,7 @@ public class MotorIOSparkMax extends MotorIO {
 
 	@Override
 	protected void setDutyCycleSetpoint(Dimensionless percent) {
-		main.setThrottle(percent.in(Percent));
+		main.setThrottle(percent.baseUnitMagnitude());
 	}
 
 	@Override
@@ -161,7 +160,7 @@ public class MotorIOSparkMax extends MotorIO {
 
 	@Override
 	protected void setVelocitySetpoint(AngularVelocity mechanismVelocity, int slot) {
-		main.getClosedLoopController().setSetpoint(mechanismVelocity.div(velocityFactor).in(RotationsPerSecond), ControlType.kVelocity,
+		main.getClosedLoopController().setSetpoint(mechanismVelocity.div(velocityFactor).in(RPM), ControlType.kVelocity,
 				ClosedLoopSlot.fromInt(slot));
 	}
 
@@ -267,11 +266,13 @@ public class MotorIOSparkMax extends MotorIO {
 		main = new SparkMax(config.canPort, config.mainID, MotorType.kBrushless);
 		setMainConfig(config.mainConfig);
 
+		followerConfig = config.followerConfig;
 		followers = new SparkMax[config.followerIDs.length];
 		for (int i = 0; i < config.followerIDs.length; i++) {
 			followers[i] = new SparkMax(config.canPort, config.followerIDs[i], MotorType.kBrushless);
-			followerConfig.follow(main, config.followerInverted[i]);
-			applyConfig(followers[i], followerConfig);
+			SparkMaxConfig motorConfig = new SparkMaxConfig();
+			motorConfig.apply(followerConfig).follow(main, config.followerInverted[i]);
+			applyConfig(followers[i], motorConfig);
 		}
 
 		useAbsoluteEncoder = config.useAbsoluteEncoder;

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.drive.scuffed;
 
+import java.util.function.Supplier;
+import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
@@ -17,14 +19,13 @@ import frc.robot.subsystems.drive.scuffed.SwerveModule.ModulePosition;
 
 public class SwerveDrive {
     private final SwerveModule[] modules;
-    private final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(DriveConstants.kModuleTranslations);
+    private final SwerveDriveKinematics kinematics;
 
-    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(kinematics, Rotation2d.ZERO,
-            getModulePositions());
-    private final Pigeon2 gyro = new Pigeon2(Ports.PIGEON.id, Ports.PIGEON.bus);
+    private final SwerveDriveOdometry odometry;
+    private final Supplier<Angle> gyroAngle;
 
     public SwerveDrive() {
-        modules = new SwerveModule[] {
+        this(new SwerveModule[] {
                 new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_LEFT_DRIVE),
                         DriveConstants.getTurnIOConfig(Ports.FRONT_LEFT_TURN), DriveConstants.turnOffsets[0]),
                 new SwerveModule(DriveConstants.getDriveIOConfig(Ports.FRONT_RIGHT_DRIVE),
@@ -33,10 +34,30 @@ public class SwerveDrive {
                         DriveConstants.getTurnIOConfig(Ports.BACK_LEFT_TURN), DriveConstants.turnOffsets[2]),
                 new SwerveModule(DriveConstants.getDriveIOConfig(Ports.BACK_RIGHT_DRIVE),
                         DriveConstants.getTurnIOConfig(Ports.BACK_RIGHT_TURN), DriveConstants.turnOffsets[3]),
-        };
+        }, createGyroSupplier(), DriveConstants.kModuleTranslations);
+    }
+
+    private static Supplier<Angle> createGyroSupplier() {
+        Pigeon2 gyro = new Pigeon2(Ports.PIGEON.id, Ports.PIGEON.bus);
+        return () -> gyro.getYaw(true).getValue();
+    }
+
+    SwerveDrive(SwerveModule[] modules, Supplier<Angle> gyroAngle, Translation2d[] moduleTranslations) {
+        this.modules = modules;
+        this.gyroAngle = gyroAngle;
+        kinematics = new SwerveDriveKinematics(moduleTranslations);
+        updateModuleInputs();
+        odometry = new SwerveDriveOdometry(kinematics, new Rotation2d(getGyroAngle()), getModulePositions());
+    }
+
+    private void updateModuleInputs() {
+        for (SwerveModule module : modules) {
+            module.updateInputs();
+        }
     }
 
     public void updateTelemetry() {
+        updateModuleInputs();
         odometry.update(new Rotation2d(getGyroAngle()), getModulePositions());
     }
 
@@ -45,7 +66,7 @@ public class SwerveDrive {
     }
 
     public Angle getGyroAngle() {
-        return gyro.getYaw(true).getValue();
+        return gyroAngle.get();
     }
 
     public ChassisVelocities getRobotRelativeVelocity() {
@@ -53,7 +74,7 @@ public class SwerveDrive {
     }
 
     public ChassisVelocities getFieldRelativeVelocity() {
-        return getRobotRelativeVelocity().toFieldRelative(new Rotation2d(getGyroAngle()));
+        return getRobotRelativeVelocity().toFieldRelative(getPose().getRotation());
     }
 
     public SwerveModulePosition[] getModulePositions() {
@@ -81,7 +102,7 @@ public class SwerveDrive {
     }
 
     public void setFieldRelativeChassisVelocities(ChassisVelocities velocities) {
-        setRobotRelativeChassisVelocities(velocities.toFieldRelative(new Rotation2d(getGyroAngle())));
+        setRobotRelativeChassisVelocities(velocities.toRobotRelative(getPose().getRotation()));
     }
 
     public void setRobotRelativeChassisVelocities(ChassisVelocities velocities) {

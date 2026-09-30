@@ -270,6 +270,14 @@ public abstract class MotorIO {
 		this.time = time;
 		inputs = new MotorIOInputsAutoLogged();
 		this.numFollowers = numFollowers;
+		int motorCount = 1 + numFollowers;
+		inputs.velocity = new double[motorCount];
+		inputs.position = new double[motorCount];
+		inputs.statorCurrent = new double[motorCount];
+		inputs.supplyCurrent = new double[motorCount];
+		inputs.motorVoltage = new double[motorCount];
+		inputs.motorTemperature = new double[motorCount];
+		inputs.acceleration = new double[motorCount];
 	}
 
 	/**

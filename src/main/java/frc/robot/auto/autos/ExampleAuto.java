@@ -14,6 +14,7 @@ public class ExampleAuto extends AutoModeBase {
 		super(factory, "Example Auto");
 
 		prepRoutine(
+				startToFirstPOI.resetOdometry(),
 				startToFirstPOI.cmd(),
 				// AutoHelpers.exampleCommand(),
 				firstPOIToSecondPOI.cmd()
@@ -23,7 +24,7 @@ public class ExampleAuto extends AutoModeBase {
 
 	@Override
 	public Pose2d getInitialPose() {
-		return startToFirstPOI.getInitialPose().get();
+		return startToFirstPOI.getInitialPose().orElseGet(frc.robot.subsystems.drive.Drive.mInstance::getPose);
 	}
 
 }

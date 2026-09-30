@@ -307,7 +307,7 @@ public class MotorIOTalonFX extends MotorIO {
 		}
 
 		public ControlRequest getDutyCycleRequest(Dimensionless percent) {
-			return new DutyCycleOut(percent.in(Units.Percent));
+			return new DutyCycleOut(percent.baseUnitMagnitude());
 		}
 
 		public ControlRequest getMotionMagicRequest(Angle mechanismPosition, int slot) {
