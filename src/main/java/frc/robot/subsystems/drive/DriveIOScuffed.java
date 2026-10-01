@@ -1,7 +1,10 @@
 package frc.robot.subsystems.drive;
 
+import org.wpilib.math.util.MathUtil;
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
+import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.units.Units;
 // import frc.lib.util.vision.VisionEstimate;
 
 import frc.robot.subsystems.drive.scuffed.SwerveDrive;
@@ -27,6 +30,7 @@ public class DriveIOScuffed implements DriveIO {
 
         inputs.modulesPositions = mSwerveDrive.getModulePositions();
         inputs.moduleStates = mSwerveDrive.getModuleVelocities();
+        inputs.moduleTargets = new SwerveModuleVelocity[4];
 
         inputs.module0Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.FRONT_LEFT));
         inputs.module1Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.FRONT_RIGHT));
@@ -36,6 +40,12 @@ public class DriveIOScuffed implements DriveIO {
             var module = mSwerveDrive.getModule(position);
             inputs.driveConfigFailed[position.ordinal()] = module.mDriveFx.inputs.configFailed;
             inputs.turnConfigFailed[position.ordinal()] = module.mTurnSpark.inputs.configFailed;
+            int index = position.ordinal();
+            inputs.moduleTargets[index] = module.getTargetVelocity();
+            inputs.absoluteEncoderDegrees[index] = module.mTurnSpark.getPosition().in(Units.Degrees);
+            inputs.steeringErrorDegrees[index] = Math.toDegrees(MathUtil.angleModulus(
+                    module.getTargetVelocity().angle.minus(inputs.moduleStates[index].angle).getRadians()));
+            inputs.appliedTargetMetersPerSecond[index] = module.getAppliedTargetMetersPerSecond();
         }
     }
 

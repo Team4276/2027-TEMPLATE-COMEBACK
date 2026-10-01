@@ -97,6 +97,36 @@ class SwerveDriveTest {
         assertEquals(Math.toRadians(20), turn.requestedPosition, 1e-9);
     }
 
+    @Test void forwardTranslationCommandsAllFourCalibratedWheelsForward() {
+        var modules = new SwerveModule[4];
+        for (int i = 0; i < modules.length; i++) {
+            var turn = new FakeMotor();
+            var offset = frc.robot.subsystems.drive.DriveConstants.turnOffsets[i];
+            turn.position = offset.in(Radians);
+            modules[i] = new SwerveModule(new FakeMotor(), turn, offset, RADIUS);
+        }
+        var swerve = new SwerveDrive(modules, () -> Degrees.zero(),
+                frc.robot.subsystems.drive.DriveConstants.kModuleTranslations);
+        swerve.setRobotRelativeChassisVelocities(new ChassisVelocities(1, 0, 0));
+        for (var module : modules) {
+            assertEquals(20, ((FakeMotor) module.mDriveFx).requestedVelocity, 1e-9);
+            assertEquals(module.mTurnOffset.in(Radians),
+                    ((FakeMotor) module.mTurnSpark).requestedPosition, 1e-9);
+            assertEquals(0, module.getTargetVelocity().angle.getRadians(), 1e-9);
+            assertEquals(1, module.getAppliedTargetMetersPerSecond(), 1e-9);
+        }
+    }
+
+    @Test void diagnosticsSeparateAlignmentSuppressionFromRequestedSpeed() {
+        var turn = new FakeMotor();
+        turn.position = Math.PI / 2;
+        var module = new SwerveModule(new FakeMotor(), turn, Degrees.zero(), RADIUS);
+        module.updateInputs();
+        module.setVelocity(new SwerveModuleVelocity(1, Rotation2d.ZERO));
+        assertEquals(1, module.getTargetVelocity().velocity, 1e-9);
+        assertEquals(0, module.getAppliedTargetMetersPerSecond(), 1e-9);
+    }
+
     @Test void combinedTranslationAndRotationPreservesRatiosAndLimitsWheelSpeed() {
         Translation2d[] locations = {
             new Translation2d(0.3, 0.2), new Translation2d(0.3, -0.2),

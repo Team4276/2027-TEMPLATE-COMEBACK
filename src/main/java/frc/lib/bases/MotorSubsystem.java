@@ -269,6 +269,11 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 		return runOnce(() -> applySetpoint(setpoint));
 	}
 
+	/** Keeps ownership until released/interrupted, then clears the controller's retained request. */
+	public Command holdSetpointCommand(Setpoint setpoint) {
+		return startEnd(() -> applySetpoint(setpoint), this::stop);
+	}
+
 	/**
 	 * Creates a continous command for the subsystem to repeatedly go to a supplied
 	 * setpoint.

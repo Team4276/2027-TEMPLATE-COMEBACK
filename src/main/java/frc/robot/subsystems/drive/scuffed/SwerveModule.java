@@ -36,6 +36,7 @@ public class SwerveModule {
     public final MotorIO mTurnSpark;
     public final Angle mTurnOffset;
     private final double wheelRadiusMeters;
+    private SwerveModuleVelocity targetVelocity = new SwerveModuleVelocity(MetersPerSecond.zero(), Rotation2d.ZERO);
 
     public SwerveModule(MotorIOTalonFXConfig driveConfig, MotorIOSparkMaxConfig turnConfig, Angle turnOffset) {
         this(new MotorIOTalonFX(driveConfig), new MotorIOSparkMax(turnConfig),
@@ -59,7 +60,8 @@ public class SwerveModule {
         Rotation2d currentAngle = new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset));
         // Reverse wheel direction when it saves steering travel, then reduce drive output while
         // steering is misaligned to avoid pushing sideways during the turn.
-        velocity = velocity.optimize(currentAngle).cosineScale(currentAngle);
+        targetVelocity = velocity.optimize(currentAngle);
+        velocity = targetVelocity.cosineScale(currentAngle);
         mDriveFx.applySetpoint(Setpoint.withVelocitySetpoint(
                 RotationsPerSecond.of(velocity.velocity / (2 * Math.PI * wheelRadiusMeters)), 0));
         // Restore the sensor-frame offset for the controller. Both swerve loops use slot 0,
@@ -77,5 +79,16 @@ public class SwerveModule {
         return new SwerveModuleVelocity(
                 MetersPerSecond.of(mDriveFx.getVelocity().in(RadiansPerSecond) * wheelRadiusMeters),
                 new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset)));
+    }
+
+    /** Optimized wheel target before cosine scaling; compare with measured state for alignment. */
+    public SwerveModuleVelocity getTargetVelocity() {
+        return targetVelocity;
+    }
+
+    /** Speed actually sent to the drive motor, after reducing output for steering misalignment. */
+    public double getAppliedTargetMetersPerSecond() {
+        return mDriveFx.getSetpoint().mode.isVelocityControl()
+                ? mDriveFx.getSetpoint().baseUnits * wheelRadiusMeters : 0.0;
     }
 }

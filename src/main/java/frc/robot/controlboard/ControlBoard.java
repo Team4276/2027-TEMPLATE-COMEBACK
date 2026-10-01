@@ -35,13 +35,15 @@ public class ControlBoard extends SubsystemBase {
 						? DriveConstants.kTeleopRequestUpdater.get()
 						: new org.wpilib.math.kinematics.ChassisVelocities()));
 
-		mDriver.back()
+		// Menu/Start matches the driver's controller diagram.
+		mDriver.start()
 				.onTrue(Commands.runOnce(
 						() -> Drive.mInstance.zeroGyro(),
 						Drive.mInstance)
 						.ignoringDisable(true));
 
-		mDriver.start()
+		// Keep the existing autonomous pose-reset request on the unused View/Back button.
+		mDriver.back()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
 
 		// Skipping bindings alone leaves mechanism hardware unmanaged. Initialize every motor
@@ -62,40 +64,34 @@ public class ControlBoard extends SubsystemBase {
 	}
 
 	public void driverControls() {
-		// These mechanism commands send persistent setpoints once. Releasing a button does not
-		// itself neutralize the motor; explicit idle commands below replace the previous request.
-		// Shooter/Feeder Controls
-		mDriver.a()
-				.whileTrue(Superstructure.mInstance.shootHub());
-		mDriver.y()
-				.whileTrue(Superstructure.mInstance.shootHubFar());
-		mDriver.x()
-				.whileTrue(Superstructure.mInstance.ferry());
+		// Diagram: A = tower, Y = hub, X = ferry. Presets latch on a press;
+		// right bumper retains the existing shooter/feed stop until auto-shot is implemented.
+		// All driver mechanism actions are restricted to enabled teleop.
+		mDriver.a().and(DriverStationBackend::isTeleopEnabled)
+				.onTrue(Superstructure.mInstance.shootTower());
+		mDriver.y().and(DriverStationBackend::isTeleopEnabled)
+				.onTrue(Superstructure.mInstance.shootHub());
+		mDriver.x().and(DriverStationBackend::isTeleopEnabled)
+				.onTrue(Superstructure.mInstance.ferry());
 
-		mDriver.rightTrigger()
-				.whileTrue(Superstructure.mInstance.feed());
+		// Reserved from the diagram: RT = auto-shot/crawl, POV up/down = first/second
+		// active period, POV left/right = enable/disable manual mode. These behaviors
+		// are not implemented yet; do not bind them to unrelated mechanism actions.
 
-		mDriver.rightBumper()
-				.whileTrue(Superstructure.mInstance.idleFlywheels()
+		mDriver.rightBumper().and(DriverStationBackend::isTeleopEnabled)
+				.onTrue(Superstructure.mInstance.idleFlywheels()
 						.alongWith(Superstructure.mInstance.idleFeeders()));
 
-		// Intake Controls
-		mDriver.leftTrigger()
-				.whileTrue(Superstructure.mInstance.runIntake());
-		mDriver.leftBumper()
-				.whileTrue(Superstructure.mInstance.exhaustIntake());
-
-		mDriver.b()
-				.whileTrue(Superstructure.mInstance.retractIntake());
-		mDriver.getHID().povUp()
+		// LT deploys and runs the rollers; LB retracts with the rollers stopped.
+		// Keep requirements while held and stop on release: deploy has no endpoint detection.
+		mDriver.leftTrigger().and(DriverStationBackend::isTeleopEnabled)
 				.whileTrue(Superstructure.mInstance.deployIntake());
+		mDriver.leftBumper().and(DriverStationBackend::isTeleopEnabled)
+				.whileTrue(Superstructure.mInstance.retractIntake());
 
-		mDriver.leftTrigger().negate()
-				// Idle the intake only when none of its mutually competing actions is requested.
-				.and(mDriver.leftBumper().negate())
-				.and(mDriver.b().negate())
-				.and(mDriver.getHID().povUp().negate())
-				.whileTrue(Superstructure.mInstance.idleIntake());
+		// B implements exhaust only; the diagram's turtle/trench behavior is still reserved.
+		mDriver.b().and(DriverStationBackend::isTeleopEnabled)
+				.whileTrue(Superstructure.mInstance.exhaustIntake());
 
 	}
 

@@ -2,6 +2,7 @@ package frc.robot.subsystems.flywheels;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -14,6 +15,7 @@ import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIOTalonFX;
 import frc.lib.io.MotorIOTalonFXSim;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
+import frc.lib.io.MotorIOTalonFX.ControlRequestGetter;
 import frc.lib.sim.RollerSim;
 import frc.lib.sim.RollerSim.RollerSimConstants;
 import frc.robot.Ports;
@@ -49,6 +51,11 @@ public class FlywheelConstants {
         config.Voltage.PeakReverseVoltage = -12.0;
 
         config.Slot0.kP = 0.0001;
+        // Initial feedforward estimate from the motor model, not measured shooter tuning.
+        // Phoenix voltage gains use mechanism rotations/sec, not RPM. With kV=0 the tiny
+        // existing kP produces only millivolts at a normal shooter target from rest.
+        DCMotor motor = DCMotor.getKrakenX60(1);
+        config.Slot0.kV = motor.nominalVoltage / (motor.freeSpeed / (2.0 * Math.PI)) * kGearing;
 
         config.Feedback.SensorToMechanismRatio = kGearing;
 
@@ -65,6 +72,14 @@ public class FlywheelConstants {
         config.mainID = Ports.FLYWHEEL_RIGHT.id;
         config.mainBus = Ports.FLYWHEEL_RIGHT.bus;
         config.mainConfig = getFXConfig();
+        // No Motion Magic acceleration profile is configured for this flywheel. Request the
+        // selected speed directly, using the slot-0 velocity gains above.
+        config.requestGetter = new ControlRequestGetter() {
+            @Override
+            public VelocityVoltage getVelocityRequest(AngularVelocity mechanismVelocity, int slot) {
+                return new VelocityVoltage(mechanismVelocity).withSlot(slot).withEnableFOC(true);
+            }
+        };
         // The right motor owns the setpoint; the left follows its output rather than running
         // an independent velocity command. Follower IDs, buses, and alignment arrays correspond.
         config.followerIDs = new int[]{Ports.FLYWHEEL_LEFT.id};

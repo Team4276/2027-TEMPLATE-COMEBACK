@@ -152,7 +152,7 @@ public class DriveConstants {
     static ChassisVelocities getRequestedSpeeds(double xInput, double yInput, double rotationInput) {
         // Clamp the vector magnitude so diagonal stick input cannot exceed straight-line speed.
         double linearMagnitude = Math.min(1.0, Math.hypot(xInput, yInput));
-        double speedScale = ControlBoardConstants.kDriveBringupMode ? 0.2 : 1.0;
+        double speedScale = ControlBoardConstants.kDriveSpeedScale;
 
         // Square magnitude for more precise control
         linearMagnitude = linearMagnitude * linearMagnitude;

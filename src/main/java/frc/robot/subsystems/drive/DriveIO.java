@@ -33,6 +33,12 @@ public interface DriveIO {
 
         SwerveModulePosition[] modulesPositions = new SwerveModulePosition[] {};
         SwerveModuleVelocity[] moduleStates = new SwerveModuleVelocity[] {};
+        // All diagnostic arrays use FL, FR, BL, BR order. Targets precede cosine scaling;
+        // applied target speed shows how much steering error reduces each wheel's drive request.
+        SwerveModuleVelocity[] moduleTargets = new SwerveModuleVelocity[] {};
+        double[] absoluteEncoderDegrees = new double[4];
+        double[] steeringErrorDegrees = new double[4];
+        double[] appliedTargetMetersPerSecond = new double[4];
 
         ModuleInput module0Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);
         ModuleInput module1Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);

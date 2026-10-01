@@ -13,7 +13,7 @@ import frc.robot.subsystems.intake.IntakeRollers;
 
 /**
  * Composes mechanism requests into driver actions. Child commands own the actual motor subsystem
- * requirements. Most actions finish immediately, leaving their setpoints active until replaced.
+ * requirements. Shooter presets latch until stopped; intake and feed actions stop on release.
  */
 public class Superstructure extends SubsystemBase {
     public static final Superstructure mInstance = new Superstructure();
@@ -52,29 +52,31 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command deployIntake() {
-        return setIntake(IntakeDeploy.DEPLOY, IntakeRollers.IDLE)
-                .withName("Idle Intake");
+        // The driver's deploy action also collects; release stops pivot voltage and rollers.
+        return setIntake(IntakeDeploy.DEPLOY, IntakeRollers.INTAKE)
+                .withName("Deploy Intake");
     }
 
     public Command runIntake() {
         return setIntake(IntakeDeploy.IDLE, IntakeRollers.INTAKE)
-                .withName("Idle Intake");
+                .withName("Run Intake");
     }
 
     public Command exhaustIntake() {
         return setIntake(IntakeDeploy.IDLE, IntakeRollers.EXHAUST)
-                .withName("Idle Intake");
+                .withName("Exhaust Intake");
     }
 
     public Command retractIntake() {
         return setIntake(IntakeDeploy.STOW, IntakeRollers.IDLE)
-                .withName("Idle Intake");
+                .withName("Stow Intake");
     }
 
     private Command setIntake(Setpoint deploy, Setpoint rollers) {
-        return IntakeDeploy.mInstance.setpointCommand(deploy)
-                .alongWith(IntakeRollers.mInstance.setpointCommand(rollers))
-                .withName("Idle Intake");
+        // Deploy is voltage-controlled with no automatic endpoint detection. Releasing the
+        // button (or interrupting this group) must stop both motors instead of latching voltage.
+        return IntakeDeploy.mInstance.holdSetpointCommand(deploy)
+                .alongWith(IntakeRollers.mInstance.holdSetpointCommand(rollers));
     }
 
     public Command shootHub() {
@@ -87,12 +89,12 @@ public class Superstructure extends SubsystemBase {
                 .withName("Shoot Hub");
     }
 
-    public Command shootHubFar() {
+    public Command shootTower() {
         return Flywheel.mInstance.setpointCommand(Flywheel.SHOWER)
                 .alongWith(Feeder.mInstance.setpointCommand(Feeder.SPINUP)
                         .alongWith(Hopper.mInstance.setpointCommand(Hopper.EXHAUST)))
                 .unless(() -> Feeder.mInstance.getSetpoint() == Feeder.FEED)
-                .withName("Shoot Hub Far");
+                .withName("Shoot Tower");
     }
 
     public Command ferry() {
@@ -102,8 +104,8 @@ public class Superstructure extends SubsystemBase {
 
     public Command feed() {
         // Feeding is driver-controlled; this command does not wait for Flywheel.spunUp().
-        return Feeder.mInstance.setpointCommand(Feeder.FEED)
-                .alongWith(Hopper.mInstance.setpointCommand(Hopper.FEED))
+        return Feeder.mInstance.holdSetpointCommand(Feeder.FEED)
+                .alongWith(Hopper.mInstance.holdSetpointCommand(Hopper.FEED))
                 .withName("Feed");
     }
 

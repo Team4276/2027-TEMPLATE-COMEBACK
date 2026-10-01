@@ -9,7 +9,7 @@ import frc.robot.controlboard.ControlBoardConstants;
 class DriveConstantsTest {
     @Test void diagonalInputIsClampedBeforeSquaring() {
         var speeds = DriveConstants.getRequestedSpeeds(1, 1, 0);
-        double scale = ControlBoardConstants.kDriveBringupMode ? 0.2 : 1.0;
+        double scale = ControlBoardConstants.kDriveSpeedScale;
         assertEquals(DriveConstants.kMaxVelocity.baseUnitMagnitude() * scale,
                 Math.hypot(speeds.vx, speeds.vy), 1e-9);
         var centered = DriveConstants.getRequestedSpeeds(0, 0, 0);
