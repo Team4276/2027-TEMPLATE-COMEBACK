@@ -15,6 +15,7 @@ import org.wpilib.units.measure.AngularVelocity;
 import org.wpilib.units.measure.LinearVelocity;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -22,6 +23,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import frc.lib.io.MotorIOSparkMax.MotorIOSparkMaxConfig;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
+import frc.lib.io.MotorIOTalonFX.ControlRequestGetter;
 import frc.lib.util.AllianceFlipUtil;
 import frc.lib.util.LoggedTunablePID;
 import frc.robot.Ports;
@@ -71,7 +73,9 @@ public class DriveConstants {
         config.Slot0.kI = 0.0;
         config.Slot0.kD = 0.0;
         config.Slot0.kS = 0.0;
-        config.Slot0.kV = (12.0 / 100.0);
+        // Velocity feedback is wheel rotations/sec after SensorToMechanismRatio.
+        // Convert the existing 100 rotor rotations/sec at 12 V estimate to wheel units.
+        config.Slot0.kV = (12.0 / 100.0) * driveMotorReduction;
         config.Slot0.kA = 0.0;
 
         config.Feedback.SensorToMechanismRatio = driveMotorReduction;
@@ -88,6 +92,13 @@ public class DriveConstants {
         config.mainID = port.id;
         config.mainConfig = getFXConfig();
         config.mainBus = port.bus;
+        // Swerve supplies instantaneous wheel speeds; no Motion Magic profile is configured.
+        config.requestGetter = new ControlRequestGetter() {
+            @Override
+            public VelocityVoltage getVelocityRequest(AngularVelocity mechanismVelocity, int slot) {
+                return new VelocityVoltage(mechanismVelocity).withSlot(slot).withEnableFOC(true);
+            }
+        };
         return config;
     }
 
