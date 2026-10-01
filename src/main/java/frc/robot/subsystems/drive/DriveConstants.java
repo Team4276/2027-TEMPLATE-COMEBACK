@@ -6,7 +6,6 @@ import static org.wpilib.units.Units.RadiansPerSecond;
 
 import java.util.function.Supplier;
 
-import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.geometry.Translation2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 import org.wpilib.math.util.Units;
@@ -24,7 +23,6 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import frc.lib.io.MotorIOSparkMax.MotorIOSparkMaxConfig;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
 import frc.lib.io.MotorIOTalonFX.ControlRequestGetter;
-import frc.lib.util.AllianceFlipUtil;
 import frc.lib.util.LoggedTunablePID;
 import frc.robot.Ports;
 import frc.robot.Robot;
@@ -149,56 +147,35 @@ public class DriveConstants {
         return config;
     }
 
-    static ChassisVelocities getRequestedSpeeds(double xInput, double yInput, double rotationInput) {
-        // Clamp the vector magnitude so diagonal stick input cannot exceed straight-line speed.
-        double linearMagnitude = Math.min(1.0, Math.hypot(xInput, yInput));
+    static ChassisVelocities getRequestedSpeeds(double forwardInput, double rotationInput) {
+        // Xbox Y is negative forward. Teleop deliberately ignores left X: the driver wants
+        // forward/backward only on the left stick, with robot rotation on right X.
+        double forward = Math.clamp(-forwardInput, -1.0, 1.0);
+        double rotation = Math.clamp(-rotationInput, -1.0, 1.0);
         double speedScale = ControlBoardConstants.kDriveSpeedScale;
-
-        // Square magnitude for more precise control
-        linearMagnitude = linearMagnitude * linearMagnitude;
-
-        Translation2d linearVelocity = Translation2d.ZERO;
-
-        if (linearMagnitude > 1e-6) {
-            linearVelocity = new Translation2d(
-                    linearMagnitude,
-                    new Rotation2d(
-                            xInput, yInput))
-                    .times(DriveConstants.kMaxVelocity.baseUnitMagnitude() * speedScale);
-        }
-
-        // Square rotation value for more precise control
-        double omega = Math.copySign(
-                rotationInput * rotationInput,
-                -rotationInput);
-
-        // Rotate the driver input into the alliance's field perspective. The drivetrain later
-        // converts field velocities to robot velocities using the estimated heading.
+        // Signed squares preserve direction while making small stick movements gentler.
+        // These are robot-relative speeds; no alliance or heading rotation belongs here.
         return new ChassisVelocities(
-                linearVelocity.getX(),
-                linearVelocity.getY(),
-                omega * DriveConstants.kMaxOmega.baseUnitMagnitude() * speedScale)
-                .toFieldRelative(AllianceFlipUtil.apply(Rotation2d.k180deg));
+                Math.copySign(forward * forward, forward) * kMaxVelocity.baseUnitMagnitude() * speedScale,
+                0.0,
+                Math.copySign(rotation * rotation, rotation) * kMaxOmega.baseUnitMagnitude() * speedScale);
     }
 
     public static final Supplier<ChassisVelocities> kTeleopRequestUpdater = switch (ControlBoardConstants.kInputMode) {
         case CONTROLLER -> () -> {
             return getRequestedSpeeds(
-                    ControlBoard.mDriver.getLeftWithDeadband().y,
-                    ControlBoard.mDriver.getLeftWithDeadband().x,
-                    ControlBoard.mDriver.getRightWithDeadband().x);
+                    ControlBoard.mDriver.getLeftY(),
+                    ControlBoard.mDriver.getRightX());
         };
         case KEYBOARD -> () -> {
             return getRequestedSpeeds(
                     ControlBoard.mKeyboard0.getRawAxis(1),
-                    ControlBoard.mKeyboard0.getRawAxis(0),
                     ControlBoard.mKeyboard1.getRawAxis(0));
         };
         case DEMO -> () -> {
             return getRequestedSpeeds(
-                    ControlBoard.mDriver.getLeftWithDeadband().y,
-                    ControlBoard.mDriver.getLeftWithDeadband().x,
-                    ControlBoard.mDriver.getRightWithDeadband().x);
+                    ControlBoard.mDriver.getLeftY(),
+                    ControlBoard.mDriver.getRightX());
         };
 
     };

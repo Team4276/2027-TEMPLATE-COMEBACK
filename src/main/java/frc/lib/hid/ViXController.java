@@ -1,34 +1,35 @@
 package frc.lib.hid;
 
-import org.wpilib.command2.button.CommandNiDsXboxController;
+import org.wpilib.command2.button.CommandXboxController;
 
 /**
- * Command-bindable gamepad with radial stick deadband. Values outside the deadband are not
- * rescaled; DriveConstants performs the later speed shaping and coordinate conversion.
+ * Xbox layout for the FIRST Driver Station used with SystemCore. The legacy NI layout swaps
+ * LT with right-stick X and also uses different bumper/menu button numbers.
+ * Independent axis deadbands prevent an unused stick axis from enabling drift on another.
  */
-public class ViXController extends CommandNiDsXboxController implements JoystickOutputController {
-    private double JOYSTICK_DEADBAND = 0.1;
+public class ViXController extends CommandXboxController implements JoystickOutputController {
     // These thresholds apply to getLT/getRT, not the inherited command Trigger factories.
     private double TRIGGER_DEADBAND = 0.25;
 
     public ViXController(int port) {
-        super(port);
+        this(port, 0.1);
     }
 
     public ViXController(int port, double deadband) {
         super(port);
-        this.JOYSTICK_DEADBAND = deadband;
+        setDeadband(deadband);
     }
 
     public void setDeadband(double deadband) {
-        this.JOYSTICK_DEADBAND = deadband;
+        getController().setLeftXDeadband(deadband);
+        getController().setLeftYDeadband(deadband);
+        getController().setRightXDeadband(deadband);
+        getController().setRightYDeadband(deadband);
     }
 
     @Override
     public JoystickOutput getRightWithDeadband() {
-        return Math.hypot(getRightX(), getRightY()) < JOYSTICK_DEADBAND
-                ? new JoystickOutput()
-                : getRight();
+        return getRight();
     }
 
     @Override
@@ -38,9 +39,7 @@ public class ViXController extends CommandNiDsXboxController implements Joystick
 
     @Override
     public JoystickOutput getLeftWithDeadband() {
-        return Math.hypot(getLeftX(), getLeftY()) < JOYSTICK_DEADBAND
-                ? new JoystickOutput()
-                : getLeft();
+        return getLeft();
     }
 
     @Override
@@ -49,11 +48,11 @@ public class ViXController extends CommandNiDsXboxController implements Joystick
     }
 
     public boolean getLT() {
-        return getLeftTriggerAxis() > TRIGGER_DEADBAND;
+        return getLeftTrigger() > TRIGGER_DEADBAND;
     }
 
     public boolean getRT() {
-        return getRightTriggerAxis() > TRIGGER_DEADBAND;
+        return getRightTrigger() > TRIGGER_DEADBAND;
     }
 
     // public Command rumbleCommand(RumbleType type, double value, double duration) {

@@ -83,6 +83,11 @@ public class DriveIOScuffed implements DriveIO {
         mSwerveDrive.setFieldRelativeChassisVelocities(velocities);
     }
 
+    @Override
+    public void driveRobotRelative(ChassisVelocities velocities) {
+        mSwerveDrive.setRobotRelativeChassisVelocities(velocities);
+    }
+
     // @Override
     // public void addVisionMeasurement(VisionEstimate estimate) {
     //     mSwerveDrive.addVisionMeasurement(estimate.getPose(), estimate.getTimestamp().in(Seconds));

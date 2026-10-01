@@ -8,7 +8,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.CommandGenericHID;
-import org.wpilib.command2.button.CommandNiDsXboxController;
+import org.wpilib.command2.button.CommandXboxController;
 import frc.lib.hid.ViXController;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
@@ -30,20 +30,20 @@ public class ControlBoard extends SubsystemBase {
 	public void configureBindings() {
 		// The default command can run whenever Drive is free, including autonomous gaps.
 		// Gate joystick requests on teleop so those gaps cannot move the robot from stick input.
-		Drive.mInstance.setDefaultCommand(Drive.mInstance.drive(() ->
+		Drive.mInstance.setDefaultCommand(Drive.mInstance.driveRobotRelative(() ->
 				DriverStationBackend.isTeleopEnabled()
 						? DriveConstants.kTeleopRequestUpdater.get()
 						: new org.wpilib.math.kinematics.ChassisVelocities()));
 
 		// Menu/Start matches the driver's controller diagram.
-		mDriver.start()
+		mDriver.menu()
 				.onTrue(Commands.runOnce(
 						() -> Drive.mInstance.zeroGyro(),
 						Drive.mInstance)
 						.ignoringDisable(true));
 
 		// Keep the existing autonomous pose-reset request on the unused View/Back button.
-		mDriver.back()
+		mDriver.view()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
 
 		// Skipping bindings alone leaves mechanism hardware unmanaged. Initialize every motor
@@ -108,7 +108,7 @@ public class ControlBoard extends SubsystemBase {
 		return rumbleCommand(mDriver, duration);
 	}
 
-	public Command rumbleCommand(CommandNiDsXboxController controller, Time duration) {
+	public Command rumbleCommand(CommandXboxController controller, Time duration) {
 		// The finalizer also clears rumble if another command interrupts the timed sequence.
 		return Commands.sequence(
 				Commands.runOnce(() -> {
@@ -129,7 +129,7 @@ public class ControlBoard extends SubsystemBase {
 		setRumble(mDriver, on);
 	}
 
-	public void setRumble(CommandNiDsXboxController controller, boolean on) {
+	public void setRumble(CommandXboxController controller, boolean on) {
 		controller.getHID().setRumble(RumbleType.RIGHT_RUMBLE, on ? 1.0 : 0.0);
 		controller.getHID().setRumble(RumbleType.LEFT_RUMBLE, on ? 1.0 : 0.0);
 	}

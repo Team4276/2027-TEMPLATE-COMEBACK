@@ -15,7 +15,7 @@ import org.wpilib.command2.SubsystemBase;
 import frc.lib.util.AllianceFlipUtil;
 // import frc.lib.util.vision.VisionEstimate;
 
-/** Command-facing drive subsystem. Requests use field coordinates; IO owns hardware and odometry. */
+/** Command-facing drive subsystem. IO owns hardware and odometry; each drive method names its frame. */
 public class Drive extends SubsystemBase {
     public static final Drive mInstance = new Drive();
 
@@ -65,6 +65,12 @@ public class Drive extends SubsystemBase {
         // Evaluate the supplier each loop for live joystick input and stop when interrupted.
         return Commands.run(() -> io.drive(speeds.get()), this)
                 .finallyDo(() -> io.drive(new ChassisVelocities()));
+    }
+
+    public Command driveRobotRelative(Supplier<ChassisVelocities> speeds) {
+        // Teleop forward means the robot's front even after rotating or resetting the gyro.
+        return Commands.run(() -> io.driveRobotRelative(speeds.get()), this)
+                .finallyDo(() -> io.driveRobotRelative(new ChassisVelocities()));
     }
 
     public void followChoreoTrajectory(SwerveSample sample) {

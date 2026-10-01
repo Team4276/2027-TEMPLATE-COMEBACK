@@ -107,6 +107,8 @@ class SwerveDriveTest {
         }
         var swerve = new SwerveDrive(modules, () -> Degrees.zero(),
                 frc.robot.subsystems.drive.DriveConstants.kModuleTranslations);
+        // Robot-relative forward must stay straight even when field heading is 90 degrees.
+        swerve.resetOdometry(new Pose2d(0, 0, Rotation2d.fromDegrees(90)));
         swerve.setRobotRelativeChassisVelocities(new ChassisVelocities(1, 0, 0));
         for (var module : modules) {
             assertEquals(20, ((FakeMotor) module.mDriveFx).requestedVelocity, 1e-9);

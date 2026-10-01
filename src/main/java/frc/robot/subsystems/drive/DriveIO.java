@@ -128,6 +128,10 @@ public interface DriveIO {
     public default void drive(ChassisVelocities speeds) {
     }
 
+    /** Requests translation relative to the robot's front, independent of gyro/alliance. */
+    public default void driveRobotRelative(ChassisVelocities speeds) {
+    }
+
     // public default void addVisionMeasurement(VisionEstimate estimate) {
     // }
 
