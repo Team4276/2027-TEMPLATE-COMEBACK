@@ -7,10 +7,13 @@ import static org.wpilib.units.Units.Meters;
 // import org.wpilib.vision.apriltag.AprilTagFields;
 import org.wpilib.units.measure.Distance;
 
+/** Shared field dimensions for alliance transforms and autonomous mirroring. */
 public class FieldLayout {
     // public static final AprilTagFieldLayout kApriltagLayout = AprilTagFieldLayout
     //         .loadField(AprilTagFields.k2026RebuiltWelded);
 
+    // Template placeholders, not regulation dimensions. Replace both from the selected season's
+    // field layout before using flipped translations or mirrored trajectories on a real field.
     public static final Distance kFieldLength = Meters.of(1.0);
     // Meters.of(kApriltagLayout.getFieldLength());
     public static final Distance kFieldWidth = Meters.of(1.0);

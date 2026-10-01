@@ -16,6 +16,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.superstructure.Superstructure;
 
+/** Maps driver inputs to commands; configureBindings is called once after Robot initializes logging. */
 public class ControlBoard extends SubsystemBase {
 	public static final ControlBoard mInstance = new ControlBoard();
 
@@ -27,7 +28,12 @@ public class ControlBoard extends SubsystemBase {
 	public static final CommandGenericHID mKeyboard1 = new CommandGenericHID(1);
 
 	public void configureBindings() {
-		Drive.mInstance.setDefaultCommand(Drive.mInstance.drive(DriveConstants.kTeleopRequestUpdater));
+		// The default command can run whenever Drive is free, including autonomous gaps.
+		// Gate joystick requests on teleop so those gaps cannot move the robot from stick input.
+		Drive.mInstance.setDefaultCommand(Drive.mInstance.drive(() ->
+				DriverStationBackend.isTeleopEnabled()
+						? DriveConstants.kTeleopRequestUpdater.get()
+						: new org.wpilib.math.kinematics.ChassisVelocities()));
 
 		mDriver.back()
 				.onTrue(Commands.runOnce(
@@ -38,7 +44,9 @@ public class ControlBoard extends SubsystemBase {
 		mDriver.start()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
 
-		driverControls();
+		if (!ControlBoardConstants.kDriveBringupMode) {
+			driverControls();
+		}
 		// bringupControls();
 		// jogControls();
 		// tuningControls();
@@ -49,6 +57,8 @@ public class ControlBoard extends SubsystemBase {
 	}
 
 	public void driverControls() {
+		// These mechanism commands send persistent setpoints once. Releasing a button does not
+		// itself neutralize the motor; explicit idle commands below replace the previous request.
 		// Shooter/Feeder Controls
 		mDriver.a()
 				.whileTrue(Superstructure.mInstance.shootHub());
@@ -76,6 +86,7 @@ public class ControlBoard extends SubsystemBase {
 				.whileTrue(Superstructure.mInstance.deployIntake());
 
 		mDriver.leftTrigger().negate()
+				// Idle the intake only when none of its mutually competing actions is requested.
 				.and(mDriver.leftBumper().negate())
 				.and(mDriver.b().negate())
 				.and(mDriver.getHID().povUp().negate())
@@ -97,6 +108,7 @@ public class ControlBoard extends SubsystemBase {
 	}
 
 	public Command rumbleCommand(CommandNiDsXboxController controller, Time duration) {
+		// The finalizer also clears rumble if another command interrupts the timed sequence.
 		return Commands.sequence(
 				Commands.runOnce(() -> {
 					setRumble(controller, true);

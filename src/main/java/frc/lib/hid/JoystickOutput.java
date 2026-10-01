@@ -1,5 +1,6 @@
 package frc.lib.hid;
 
+/** Immutable raw stick vector; axis remapping into robot coordinates belongs to the drive request. */
 public class JoystickOutput {
     public final double x;
     public final double y;
@@ -14,7 +15,7 @@ public class JoystickOutput {
         this.y = 0.0;
     }
 
-    /** Squared Magnitude for more precise control */
+    /** Squares each axis with its sign preserved; unlike radial squaring, this can change direction. */
     public JoystickOutput sq() {
         return new JoystickOutput(
                 Math.copySign(x * x, x),

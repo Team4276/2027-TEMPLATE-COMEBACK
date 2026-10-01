@@ -4,6 +4,7 @@ import frc.lib.bases.MotorSubsystem;
 import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIO.Setpoint;
 
+/** Intake roller presets; Superstructure pairs these outputs with deploy motor requests. */
 public class IntakeRollers extends MotorSubsystem<MotorIO> {
     public static final Setpoint IDLE = Setpoint.withVoltageSetpoint(IntakeRollersConstants.kIdleVoltage);
     public static final Setpoint INTAKE = Setpoint.withVoltageSetpoint(IntakeRollersConstants.kIntakeVoltage);

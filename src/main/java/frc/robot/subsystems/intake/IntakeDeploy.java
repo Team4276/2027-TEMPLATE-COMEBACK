@@ -4,6 +4,10 @@ import frc.lib.bases.MotorSubsystem;
 import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIO.Setpoint;
 
+/**
+ * Voltage-controlled deploy motor. DEPLOY/STOW are persistent outputs, not position targets;
+ * callers must request IDLE to stop. No automatic endpoint detection is implemented here.
+ */
 public class IntakeDeploy extends MotorSubsystem<MotorIO> {
     public static final Setpoint IDLE = Setpoint.withVoltageSetpoint(IntakeDeployConstants.kIdleVoltage);
     public static final Setpoint DEPLOY = Setpoint.withVoltageSetpoint(IntakeDeployConstants.kDeployVoltage);

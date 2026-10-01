@@ -29,13 +29,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.UnaryOperator;
 
 /**
- * Tuning and setpoint with config change requests no work
+ * REV Flex adapter using relative encoder feedback. Basic motor commands are implemented,
+ * but CTRE configuration hooks used by MotorSubsystem tuning and limit-changing setpoints
+ * are placeholders; configure REV settings through SparkFlexConfig instead.
  */
 public class MotorIOSparkFlex extends MotorIO {
 	protected final SparkFlex main;
 	protected final SparkFlex[] followers;
 	protected SparkFlexConfig config;
 	protected SparkFlexConfig followerConfig;
+	// A single worker keeps configuration transactions off the periodic robot thread.
 	private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
@@ -63,11 +66,14 @@ public class MotorIOSparkFlex extends MotorIO {
 		inputs.setPointType = Mode.IDLE;
 		inputs.setPointValueAsDouble = 0.0;
 
+		// Convert native rotations/RPM to base units after applying software mechanism scales.
 		inputs.position[0] = Rotations.of(main.getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
 		inputs.velocity[0] = RPM.of(main.getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 		inputs.statorCurrent[0] = main.getOutputCurrent().get();
+		// This adapter reports output current in both fields; it does not measure supply current.
 		inputs.supplyCurrent[0] = main.getOutputCurrent().get();
 		inputs.motorVoltage[0] = main.getBusVoltage().get() * main.getAppliedOutput().get();
+		// Legacy exception to MotorIO's base-unit convention: Flex temperature is raw Celsius.
 		inputs.motorTemperature[0] = main.getMotorTemperature().get();
 		inputs.acceleration[0] = 0.0;
 
@@ -199,12 +205,12 @@ public class MotorIOSparkFlex extends MotorIO {
 
 	@Override
 	public void useSoftLimits(boolean enable) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Not implemented: MotorIO's soft-limit toggle has no Spark configuration translation.
 	}
 
 	@Override
 	public TalonFXConfiguration getMotorIOConfig() {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Compatibility placeholder, not a readback of the Spark's settings.
 		return new TalonFXConfiguration();
 	}
 
@@ -223,35 +229,33 @@ public class MotorIOSparkFlex extends MotorIO {
 	}
 
 	public void setMainConfig(TalonFXConfiguration configuration) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// CTRE settings cannot be applied to REV hardware; use the SparkFlexConfig overload.
 	}
 
 	/**
-	 * Changes the currently applied main TalonFXConfiguration and applies the new
-	 * configuration to the main motor.
+	 * Unsupported CTRE configuration hook; the callback is not invoked for this adapter.
 	 *
 	 * @param configChanger Mutating operation to apply on the current
 	 *                      configuration.
 	 */
 	public void changeMainConfig(UnaryOperator<TalonFXConfiguration> configChanger) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Limit-changing MotorIO setpoints still send their target, but do not change REV limits.
 	}
 
 	/**
-	 * Changes the currently applied follower TalonFXConfiguration and applies the
-	 * new configuration to all follower motors.
+	 * Unsupported CTRE follower configuration hook; use SparkFlexConfig for REV settings.
 	 *
 	 * @param configChanger Mutating operation to apply on the current
 	 *                      configuration.
 	 */
 	public void changeFollowerConfig(UnaryOperator<TalonFXConfiguration> configChanger) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// No CTRE-to-REV configuration translation is provided.
 	}
 
 	/**
-	 * Creates a MotorIOTalonFX from a provided configuration.
+	 * Creates a Spark Flex leader and followers from a provided configuration.
 	 *
-	 * @param config Configuration to create MotorIOTalonFX from.
+	 * @param config Device addresses, conversion factors, and REV settings.
 	 */
 	public MotorIOSparkFlex(MotorIOSparkFlexConfig config) {
 		super(config.unit, config.time, config.followerIDs.length);
@@ -271,8 +275,8 @@ public class MotorIOSparkFlex extends MotorIO {
 	}
 
 	/**
-	 * Configuration for a MotorIOTalonFX. Motion magic control is on slot 0,
-	 * velocity on slot 1, and position PID on slot 2.
+	 * Configuration for this adapter. Default slots are MAXMotion 0, velocity 1, position PID 2.
+	 * Conversion factors are software scales and should not duplicate device-side encoder scaling.
 	 */
 	public static class MotorIOSparkFlexConfig {
 		public AngleUnit unit = Units.Rotations;

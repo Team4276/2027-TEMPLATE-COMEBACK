@@ -20,6 +20,10 @@ import frc.lib.io.MotorIOSparkMax.MotorIOSparkMaxConfig;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
 import frc.robot.subsystems.drive.DriveConstants;
 
+/**
+ * One Talon-driven wheel and Spark-steered module. MotorIO exposes wheel/module angles after
+ * adapter conversion; this layer alone converts wheel radians to distance using wheel radius.
+ */
 public class SwerveModule {
     public enum ModulePosition {
         FRONT_LEFT,
@@ -51,8 +55,15 @@ public class SwerveModule {
     }
 
     public void setVelocity(SwerveModuleVelocity velocity) {
+        // Subtract the absolute encoder's mounting offset to work in robot-relative wheel angles.
+        Rotation2d currentAngle = new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset));
+        // Reverse wheel direction when it saves steering travel, then reduce drive output while
+        // steering is misaligned to avoid pushing sideways during the turn.
+        velocity = velocity.optimize(currentAngle).cosineScale(currentAngle);
         mDriveFx.applySetpoint(Setpoint.withVelocitySetpoint(
                 RotationsPerSecond.of(velocity.velocity / (2 * Math.PI * wheelRadiusMeters)), 0));
+        // Restore the sensor-frame offset for the controller. Both swerve loops use slot 0,
+        // overriding MotorIO's general-purpose default slots.
         mTurnSpark.applySetpoint(Setpoint.withPositionSetpoint(velocity.angle.getMeasure().plus(mTurnOffset), 0));
     }
 

@@ -83,6 +83,7 @@ public class FlywheelMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<I
 	}
 
 	public boolean spunUpDebounced() {
+		// Poll regularly: the debouncer requires sustained in-tolerance feedback before readiness.
 		return debouncer.calculate(spunUp());
 	}
 
@@ -116,6 +117,8 @@ public class FlywheelMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<I
 	 * @return A new Command to apply velocity setpoint and wait.
 	 */
 	public Command setpointCommandWithWait(Setpoint setpoint) {
+		// Send once, then hold the command group's requirement until measured speed is reached.
+		// The controller keeps the setpoint after the group ends; this wait has no timeout.
 		return waitForVelocityCommand(
 				BaseUnits.AngleUnit.per(BaseUnits.TimeUnit).of(setpoint.baseUnits))
 				.deadlineFor(setpointCommand(setpoint));

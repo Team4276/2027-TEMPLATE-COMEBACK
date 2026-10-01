@@ -12,6 +12,8 @@ import org.wpilib.system.Timer;
 
 /**
  * Abstract class for simulatable mechanisms.
+ * Models expose output-shaft angles, even for linear mechanisms; IO converts them back to rotor
+ * feedback with gearing (rotor turns per mechanism turn). This keeps physics vendor-independent.
  */
 public abstract class MechanismSim {
 	private Time lastTimeStamp;
@@ -76,6 +78,7 @@ public abstract class MechanismSim {
 	 * was simulated.
 	 */
 	public void simulate() {
+		// Integrate elapsed monotonic time instead of assuming a perfectly periodic notifier.
 		Time currentTimestamp = Units.Seconds.of(Timer.getMonotonicTimestamp());
 		update(currentTimestamp.minus(lastTimeStamp));
 		lastTimeStamp = currentTimestamp;

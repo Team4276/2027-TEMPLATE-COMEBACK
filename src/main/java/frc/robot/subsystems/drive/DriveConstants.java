@@ -31,19 +31,25 @@ import frc.robot.Robot;
 import frc.robot.controlboard.ControlBoard;
 import frc.robot.controlboard.ControlBoardConstants;
 
+/**
+ * Drivetrain geometry, device setup, and driver/path control gains. Numerical calibration values
+ * are robot-specific; their original measurement/tuning history is not recorded in this template.
+ */
 public class DriveConstants {
     public static final LinearVelocity kMaxVelocity = MetersPerSecond.of(5.623);
     public static final AngularVelocity kMaxOmega = RadiansPerSecond.of(13.154);
 
     public static final double trackWidth = Units.inchesToMeters(19.5);
     public static final double wheelBase = Units.inchesToMeters(27.5);
+    // Robot coordinates: +X forward, +Y left. Order must match ModulePosition and turnOffsets.
     public static final Translation2d[] kModuleTranslations = new Translation2d[] {
-            new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
-            new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
-            new Translation2d(-trackWidth / 2.0, wheelBase / 2.0),
-            new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
+            new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
+            new Translation2d(wheelBase / 2.0, -trackWidth / 2.0),
+            new Translation2d(-wheelBase / 2.0, trackWidth / 2.0),
+            new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0)
     };
     
+    // Absolute encoder readings with each wheel pointing forward; applied in SwerveModule.
     public static final Angle[] turnOffsets = {
             Degrees.of(101.8), // FL
             Degrees.of(175.2), // FR
@@ -78,6 +84,7 @@ public class DriveConstants {
         config.Slot0.kV = (12.0 / 100.0) * driveMotorReduction;
         config.Slot0.kA = 0.0;
 
+        // Report wheel rotations instead of rotor rotations so gearing is not applied twice.
         config.Feedback.SensorToMechanismRatio = driveMotorReduction;
 
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -112,6 +119,8 @@ public class DriveConstants {
         config.absoluteEncoder
                 .inverted(true)
                 .averageDepth(2);
+        // Absolute feedback preserves steering orientation through power cycles; wrapping
+        // lets the controller cross the encoder's zero boundary along the shorter direction.
         config.closedLoop
                 .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
                 .positionWrappingEnabled(true)
@@ -140,8 +149,10 @@ public class DriveConstants {
         return config;
     }
 
-    private static ChassisVelocities getRequestedSpeeds(double xInput, double yInput, double rotationInput) {
-        double linearMagnitude = Math.hypot(xInput, yInput);
+    static ChassisVelocities getRequestedSpeeds(double xInput, double yInput, double rotationInput) {
+        // Clamp the vector magnitude so diagonal stick input cannot exceed straight-line speed.
+        double linearMagnitude = Math.min(1.0, Math.hypot(xInput, yInput));
+        double speedScale = ControlBoardConstants.kDriveBringupMode ? 0.2 : 1.0;
 
         // Square magnitude for more precise control
         linearMagnitude = linearMagnitude * linearMagnitude;
@@ -153,7 +164,7 @@ public class DriveConstants {
                     linearMagnitude,
                     new Rotation2d(
                             xInput, yInput))
-                    .times(DriveConstants.kMaxVelocity.baseUnitMagnitude());
+                    .times(DriveConstants.kMaxVelocity.baseUnitMagnitude() * speedScale);
         }
 
         // Square rotation value for more precise control
@@ -161,10 +172,12 @@ public class DriveConstants {
                 rotationInput * rotationInput,
                 -rotationInput);
 
+        // Rotate the driver input into the alliance's field perspective. The drivetrain later
+        // converts field velocities to robot velocities using the estimated heading.
         return new ChassisVelocities(
                 linearVelocity.getX(),
                 linearVelocity.getY(),
-                omega * DriveConstants.kMaxOmega.baseUnitMagnitude())
+                omega * DriveConstants.kMaxOmega.baseUnitMagnitude() * speedScale)
                 .toFieldRelative(AllianceFlipUtil.apply(Rotation2d.k180deg));
     }
 

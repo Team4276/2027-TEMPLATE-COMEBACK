@@ -5,7 +5,10 @@ import org.littletonrobotics.junction.Logger;
 import org.wpilib.math.util.Units;
 import org.wpilib.system.Timer;
 
-/** Utility class for logging code execution times. */
+/**
+ * Logs elapsed time between sequential checkpoints. Robot resets it each loop; a subsystem's
+ * entry includes everything since the preceding checkpoint, not exclusively that subsystem's work.
+ */
 public class LoggedTracer {
 	private LoggedTracer() {
 	}

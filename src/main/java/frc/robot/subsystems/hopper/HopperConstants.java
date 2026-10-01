@@ -13,6 +13,7 @@ import frc.lib.sim.RollerSim.RollerSimConstants;
 import frc.robot.Ports;
 import frc.robot.RobotConstants;
 
+/** Hopper wiring/configuration factory; ramp rates smooth changes to the requested output. */
 public class HopperConstants {
 	public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
 	public static final Voltage kFeedVoltage = Units.Volts.of(8.0);
@@ -46,6 +47,8 @@ public class HopperConstants {
 	}
 
 	public static MotorIO getMotorIO() {
+		// SIM is a passive stub: the roller parameters below are not connected to physics yet.
+		// REPLAY leaves measurements to Logger.processInputs in MotorSubsystem.
 		return switch (RobotConstants.mode) {
 			case REAL -> new MotorIOSparkFlex(getIOConfig());
 			case SIM -> new MotorIO(Units.Rotations, Units.Minutes) {
@@ -61,6 +64,7 @@ public class HopperConstants {
 	}
 
 	public static RollerSimConstants getSimConstants() {
+		// Reserved model parameters; the current SIM branch does not instantiate RollerSim.
 		RollerSimConstants simConstants = new RollerSimConstants();
 
 		simConstants.motor = DCMotor.getNeoVortex(1);

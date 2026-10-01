@@ -2,6 +2,8 @@ import org.gradle.internal.os.OperatingSystem
 
 pluginManagement {
     repositories {
+        // Match the installed WPILib distribution to this project's alpha GradleRIO version.
+        // Prefer its local Maven artifacts before falling back to other plugin repositories.
         String wpilibYear = '2027_alpha7'
         File wpilibHome
         def os = OperatingSystem.current()

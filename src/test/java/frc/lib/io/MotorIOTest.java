@@ -6,6 +6,7 @@ import static org.wpilib.units.Units.*;
 import org.junit.jupiter.api.Test;
 import frc.lib.bases.ServoMotorSubsystem;
 
+/** Regression checks for the IO contract and servo target comparisons without real CAN devices. */
 class MotorIOTest {
     private static class FakeMotor extends MotorIO {
         FakeMotor(int followers) { super(Rotations, Seconds, followers); }

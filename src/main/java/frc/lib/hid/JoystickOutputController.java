@@ -1,5 +1,6 @@
 package frc.lib.hid;
 
+/** Common stick access for gamepads/dual joysticks; unimplemented axes default to centered input. */
 public interface JoystickOutputController {
 
     default JoystickOutput getRight() {

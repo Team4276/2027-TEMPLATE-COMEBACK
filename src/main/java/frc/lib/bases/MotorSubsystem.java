@@ -21,6 +21,8 @@ import org.littletonrobotics.junction.Logger;
 
 /**
  * Base subsystem for any subsystem that uses motors.
+ * Owns scheduler requirements, input logging, and command factories while MotorIO owns hardware.
+ * Setpoints persist in the motor controller after an instant command finishes.
  */
 public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 	protected final IO io;
@@ -69,6 +71,8 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 	}
 
 	public void tuning(String name) {
+		// Tunables are initialized only while disabled. This path uses CTRE configuration hooks;
+		// Spark adapters do not translate these gains into REV settings.
 		if (RobotBase.isDisabled() && tuningMode == true) {
 
 			kP0 = new TunableNumber(name + "kP0", io.getMotorIOConfig().Slot0.kP);
@@ -148,6 +152,7 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 
 	@Override
 	public void periodic() {
+		// ProcessInputs can replace measurements during replay; consumers should read after it.
 		io.updateInputs();
 		Logger.processInputs(name, io.inputs);
 		outputTelemetry();
@@ -253,6 +258,7 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 	 * @return One time Command for the subsystem.
 	 */
 	public Command setpointCommand(Setpoint setpoint) {
+		// Completion means "request sent", not "target reached"; use a wait helper when needed.
 		return runOnce(() -> applySetpoint(setpoint));
 	}
 
@@ -264,6 +270,7 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 	 * @return Continuous Command for the subsystem.
 	 */
 	public Command followSetpointCommand(Supplier<Setpoint> supplier) {
+		// There is no automatic neutral on interruption. Compose a stop action if required.
 		return run(() -> applySetpoint(supplier.get()));
 	}
 

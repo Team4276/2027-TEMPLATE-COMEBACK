@@ -35,16 +35,19 @@ public class PivotSimHelper extends PivotSim {
 		double absVelocity = Math.abs(velocityRadPerSec);
 		double absRequestedVolts = Math.abs(requestedVolts);
 
-		// Hold position when commanded torque is too small to break static friction.
+		// Suppress drive voltage below the breakaway threshold. This is an approximation:
+		// zero input voltage does not lock the arm against gravity in the underlying model.
 		if (absVelocity < stictionVelocityRadPerSec && absRequestedVolts < staticFrictionVolts) {
 			sim.setInputVoltage(0.0);
 			return;
 		}
 
+		// Oppose measured motion; near rest, use the requested direction to avoid an undefined sign.
 		double frictionDirection = absVelocity > MIN_SPEED_EPSILON_RAD_PER_SEC
 				? Math.signum(velocityRadPerSec)
 				: Math.signum(requestedVolts);
 		double normalizedVelocity = absVelocity / Math.max(stictionVelocityRadPerSec, MIN_SPEED_EPSILON_RAD_PER_SEC);
+		// Smoothly blend breakaway friction into running friction instead of switching abruptly.
 		double staticToKineticBlend = Math.exp(-normalizedVelocity * normalizedVelocity);
 		double coulombFrictionVolts = kineticFrictionVolts
 				+ (staticFrictionVolts - kineticFrictionVolts) * staticToKineticBlend;

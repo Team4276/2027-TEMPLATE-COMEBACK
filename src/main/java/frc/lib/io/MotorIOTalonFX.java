@@ -36,6 +36,8 @@ import org.littletonrobotics.junction.Logger;
 /**
  * Class used to control a main TalonFX and any number of followers for a real
  * mechanism.
+ * Feedback scaling belongs in TalonFXConfiguration; this adapter preserves typed mechanism
+ * units. ControlRequestGetter allows a mechanism to choose its control request/profile.
  */
 public class MotorIOTalonFX extends MotorIO {
 	protected final TalonFX main;
@@ -43,10 +45,13 @@ public class MotorIOTalonFX extends MotorIO {
 	protected TalonFXConfiguration config;
 	protected TalonFXConfiguration followerConfig;
 	private final ControlRequestGetter requestGetter;
+	// A single worker preserves write order without blocking the scheduler on CAN configuration.
+	// These methods enqueue changes; callers must not assume immediate device application.
 	private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
-	private boolean configFailed = false;
+	// Latched after all retries fail; retained until robot code restarts.
+	private volatile boolean configFailed = false;
 
 	public void applyConfig(TalonFX fx, TalonFXConfiguration config) {
 		threadPoolExecutor.submit(() -> {
@@ -54,7 +59,7 @@ public class MotorIOTalonFX extends MotorIO {
 				StatusCode result = fx.getConfigurator().apply(config);
 				if (result.isOK()) {
 					break;
-				} else {
+				} else if (i == 4) {
 					configFailed = true;
 				}
 			}
@@ -64,6 +69,7 @@ public class MotorIOTalonFX extends MotorIO {
 	@Override
 	public void updateInputs() {
 		inputs.enabled = getEnabled();
+		inputs.connected = main.isConnected();
 		inputs.setPointType = Mode.IDLE;
 		inputs.setPointValueAsDouble = 0.0;
 
@@ -107,7 +113,7 @@ public class MotorIOTalonFX extends MotorIO {
 
 		// inputs.pidVoltage = Units.Volts.of(main.getClosedLoopOutput().getValue());
 
-		inputs.configFailed = false;
+		inputs.configFailed = configFailed;
 	}
 
 	private void setControl(ControlRequest request) {
@@ -301,6 +307,11 @@ public class MotorIOTalonFX extends MotorIO {
 		public ControlRequestGetter requestGetter = new ControlRequestGetter();
 	}
 
+	/**
+	 * Default request policy uses Motion Magic for velocity and profiled position. Mechanisms
+	 * needing direct velocity control (such as swerve) override getVelocityRequest in their config.
+	 * Default adapter slots are profile 0, velocity 1, and position 2 unless supplied explicitly.
+	 */
 	public static class ControlRequestGetter {
 		public ControlRequest getVoltageRequest(Voltage voltage) {
 			return new VoltageOut(voltage.in(Units.Volts)).withEnableFOC(true);

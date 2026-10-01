@@ -10,6 +10,10 @@ import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.intake.IntakeDeploy;
 import frc.robot.subsystems.intake.IntakeRollers;
 
+/**
+ * Composes mechanism requests into driver actions. Child commands own the actual motor subsystem
+ * requirements. Most actions finish immediately, leaving their setpoints active until replaced.
+ */
 public class Superstructure extends SubsystemBase {
     public static final Superstructure mInstance = new Superstructure();
 
@@ -49,6 +53,8 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command shootHub() {
+        // Skip the entire spin-up group if feed was already requested. This identity check
+        // depends on callers using Feeder.FEED, not a newly constructed equivalent setpoint.
         return Flywheel.mInstance.setpointCommand(Flywheel.SHUB)
                 .alongWith(Feeder.mInstance.setpointCommand(Feeder.SPINUP)
                         .alongWith(Hopper.mInstance.setpointCommand(Hopper.EXHAUST)))
@@ -70,6 +76,7 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command feed() {
+        // Feeding is driver-controlled; this command does not wait for Flywheel.spunUp().
         return Feeder.mInstance.setpointCommand(Feeder.FEED)
                 .alongWith(Hopper.mInstance.setpointCommand(Hopper.FEED))
                 .withName("Feed");

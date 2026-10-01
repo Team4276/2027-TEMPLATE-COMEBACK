@@ -13,6 +13,7 @@ import frc.lib.sim.RollerSim.RollerSimConstants;
 import frc.robot.Ports;
 import frc.robot.RobotConstants;
 
+/** Feeder electrical settings and outputs; these are voltage commands, not regulated speeds. */
 public class FeederConstants {
 	public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
 	public static final Voltage kSpinupVoltage = Units.Volts.of(12.0);
@@ -47,6 +48,8 @@ public class FeederConstants {
 	}
 
 	public static MotorIO getMotorIO() {
+		// SIM is a passive stub: getSimConstants() is not yet connected to a physics adapter.
+		// REPLAY also uses passive IO, with measurements supplied by the logger.
 		return switch (RobotConstants.mode) {
 			case REAL -> new MotorIOSparkFlex(getIOConfig());
 			case SIM -> new MotorIO(Units.Rotations, Units.Minutes) {
@@ -62,6 +65,7 @@ public class FeederConstants {
 	}
 
 	public static RollerSimConstants getSimConstants() {
+		// Reserved model parameters; the current SIM branch does not instantiate RollerSim.
 		RollerSimConstants simConstants = new RollerSimConstants();
 
 		simConstants.motor = DCMotor.getNeoVortex(1);

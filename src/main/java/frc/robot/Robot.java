@@ -24,6 +24,10 @@ import frc.robot.auto.AutoSelector;
 import frc.robot.controlboard.ControlBoard;
 import frc.robot.subsystems.drive.Drive;
 
+/**
+ * Application lifecycle: starts logging, connects autonomous callbacks, and runs the command scheduler.
+ * Subsystems own their periodic work so the same commands can run in autonomous and teleop.
+ */
 public class Robot extends LoggedRobot {
     private AutoFactory mAutoFactory;
     private Command mAutonomousCommand;
@@ -56,6 +60,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
+        // Start logging before constructing the subsystem singletons used by the auto factory.
         Logger.start();
 
         mAutoFactory = new AutoFactory(
@@ -68,6 +73,8 @@ public class Robot extends LoggedRobot {
         mAutoSelector = new AutoSelector(mAutoFactory);
 
         // Log active commands
+        // Several command instances can share a name; a count keeps the aggregate log active
+        // until the last instance finishes, while the hash distinguishes individual instances.
         Map<String, Integer> commandCounts = new HashMap<>();
         BiConsumer<Command, Boolean> logCommandFunction = (Command command, Boolean active) -> {
             String name = command.getName();
@@ -119,6 +126,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void disabledPeriodic() {
+        // Auto selection requests a one-time reset while disabled, before the path starts.
         if (resetPoseForAuto) {
             Drive.mInstance.resetPose(mAutoSelector.getSelectedAutoStartingPose());
             resetPoseForAuto = false;
@@ -148,6 +156,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
+        // Release the autonomous command's subsystem requirements when driver control begins.
         if (mAutonomousCommand != null) {
             mAutonomousCommand.cancel();
         }

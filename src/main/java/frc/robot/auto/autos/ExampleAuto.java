@@ -5,6 +5,10 @@ import choreo.auto.AutoTrajectory;
 import org.wpilib.math.geometry.Pose2d;
 import frc.robot.auto.AutoModeBase;
 
+/**
+ * Two-path example requiring matching .traj files in deploy/choreo. Reset odometry before the
+ * first segment so trajectory feedback starts in the path's coordinate frame.
+ */
 public class ExampleAuto extends AutoModeBase {
 
 	AutoTrajectory startToFirstPOI = trajectory("startToFirstPOI");

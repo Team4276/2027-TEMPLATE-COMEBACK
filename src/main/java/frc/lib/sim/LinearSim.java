@@ -16,6 +16,8 @@ import frc.lib.util.Util;
 /**
  * Class for simulating a linear system powerd by one or more motors like an
  * elevator.
+ * DistanceAngleConverter represents carriage travel as drum angle for MotorIO's angular interface;
+ * gearing is handled separately and must not be folded into the drum radius a second time.
  */
 public class LinearSim extends MechanismSim {
 	private final Util.DistanceAngleConverter converter;

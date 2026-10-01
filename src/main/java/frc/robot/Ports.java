@@ -4,6 +4,10 @@ import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
 
+/**
+ * Wiring map shared by REV and CTRE adapters. A device address includes both its ID and bus;
+ * keeping them together prevents a mechanism from silently using the default CAN port.
+ */
 public enum Ports {
     /* Drive */
     FRONT_LEFT_DRIVE(1, CANPort.CAN_S1),

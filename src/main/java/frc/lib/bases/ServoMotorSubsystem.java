@@ -72,6 +72,8 @@ public class ServoMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<IO> 
 	@Override
 	public void periodic() {
 		super.periodic();
+		// Homing is attempted only near the expected home location. Temporarily bypass soft
+		// limits, drive into the stop, and identify contact by sustained low measured velocity.
 		if (isHomingSubsystem) {
 			if (mNeedsToHome && setpointNearHome() && nearHomingLocation()) {
 				mHoming = true;
@@ -168,6 +170,8 @@ public class ServoMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<IO> 
 
 	@Override
 	public void applySetpoint(Setpoint setpoint) {
+		// External requests cancel homing and restore limits. The homing loop writes directly
+		// to io so its own voltage request does not trigger this cancellation path.
 		super.applySetpoint(setpoint);
 		if (isHomingSubsystem) {
 			if (mHoming) {
@@ -237,6 +241,7 @@ public class ServoMotorSubsystem<IO extends MotorIO> extends MotorSubsystem<IO> 
 	public static class ServoHomingConfig {
 		public Angle kHomePosition;
 		public Voltage kHomingVoltage;
+		// Required low-velocity dwell, not an overall maximum duration for the homing operation.
 		public Time kHomingTimeout;
 		public AngularVelocity kSetHomedVelocity;
 	}

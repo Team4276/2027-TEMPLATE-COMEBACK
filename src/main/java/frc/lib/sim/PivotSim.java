@@ -14,6 +14,8 @@ import org.wpilib.simulation.SingleJointedArmSim;
 /**
  * Class for simulating a pivoting system powerd by one or more motors like a
  * rotating arm.
+ * Hard stops and initial angle are mechanism coordinates, not motor rotations. Gravity is optional
+ * so the same wrapper can represent an arm or a pivot whose gravity load is negligible.
  */
 public class PivotSim extends MechanismSim {
 	protected final SingleJointedArmSim sim;

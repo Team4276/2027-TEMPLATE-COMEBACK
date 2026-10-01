@@ -17,6 +17,7 @@ import frc.robot.Ports;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
 
+/** Hardware limits, voltage presets, and the simple roller model used by the intake IO factory. */
 public class IntakeRollersConstants {
     public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
     public static final Voltage kIntakeVoltage = Units.Volts.of(12.0);
@@ -53,6 +54,8 @@ public class IntakeRollersConstants {
     }
 
     public static MotorIO getMotorIO() {
+        // Commands use the same MotorIO contract in all modes. Replay needs no device writes;
+        // MotorSubsystem's Logger.processInputs supplies the recorded measurements.
         return switch (RobotConstants.mode) {
             case REAL -> new MotorIOTalonFX(getIOConfig());
             case SIM -> new MotorIOTalonFXSim(getIOConfig(), new RollerSim(getSimConstants()));
@@ -65,6 +68,8 @@ public class IntakeRollersConstants {
     }
 
     public static RollerSimConstants getSimConstants() {
+        // This model approximates unloaded rotation; it does not simulate game-piece contact.
+        // The template does not record a measured inertia for this mechanism.
         RollerSimConstants simConstants = new RollerSimConstants();
 
         simConstants.motor = DCMotor.getKrakenX60(1);

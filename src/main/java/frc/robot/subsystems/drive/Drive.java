@@ -15,9 +15,12 @@ import org.wpilib.command2.SubsystemBase;
 import frc.lib.util.AllianceFlipUtil;
 // import frc.lib.util.vision.VisionEstimate;
 
+/** Command-facing drive subsystem. Requests use field coordinates; IO owns hardware and odometry. */
 public class Drive extends SubsystemBase {
     public static final Drive mInstance = new Drive();
 
+    // This template currently constructs hardware IO in every mode; a simulated/replay-only
+    // drivetrain would need an IO selection here, unlike the mechanism factories.
     private DriveIO io = new DriveIOScuffed();
     private DriveIOInputsAutoLogged inputs = new DriveIOInputsAutoLogged();
 
@@ -26,6 +29,7 @@ public class Drive extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // Read before processing so commands see this loop's measurements (or replayed inputs).
         io.updateInputs(inputs);
         Logger.processInputs("Drive", inputs);
     }
@@ -44,6 +48,8 @@ public class Drive extends SubsystemBase {
     }
 
     public void zeroGyro() {
+        // Change the field heading reference while preserving translation; this is a pose reset,
+        // not a write to the Pigeon's raw yaw sensor.
         resetPose(
                 new Pose2d(
                         getPose().getTranslation(),
@@ -56,10 +62,14 @@ public class Drive extends SubsystemBase {
     }
 
     public Command drive(Supplier<ChassisVelocities> speeds) {
-        return Commands.run(() -> io.drive(speeds.get()), this);
+        // Evaluate the supplier each loop for live joystick input and stop when interrupted.
+        return Commands.run(() -> io.drive(speeds.get()), this)
+                .finallyDo(() -> io.drive(new ChassisVelocities()));
     }
 
     public void followChoreoTrajectory(SwerveSample sample) {
+        // Add pose-error feedback to the path's field-relative velocity feedforward.
+        // Wrapping heading error avoids commanding a full turn across the +/-pi boundary.
         ChassisVelocities requestedSpeeds = sample.getChassisSpeeds();
 
         requestedSpeeds.vx += DriveConstants.kTrajectoryXController.calculate(

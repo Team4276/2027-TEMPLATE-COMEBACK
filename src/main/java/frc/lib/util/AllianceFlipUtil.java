@@ -11,6 +11,11 @@ import frc.robot.game.FieldLayout;
 import frc.robot.RobotConstants;
 import frc.robot.RobotConstants.Mode;
 
+/**
+ * Converts blue-reference field coordinates to the opposite alliance with a 180-degree rotation
+ * about field center. flip() always transforms; apply() only transforms when shouldFlip() is true.
+ * This differs from AutoModeBase's left/right reflection within one alliance.
+ */
 public class AllianceFlipUtil {
     static {
         // SmartDashboard.putBoolean("Sim/OverrideFlip", false);
@@ -72,6 +77,8 @@ public class AllianceFlipUtil {
     }
 
     public static boolean shouldFlip() {
+        // Unknown alliance uses the blue reference. In SIM the override suppresses red flipping;
+        // it changes this utility's behavior, not the Driver Station's reported alliance.
         // overrideFlip = SmartDashboard.getBoolean("Sim/OverrideFlip", overrideFlip);
 
         return DriverStationBackend.getAlliance().isPresent()

@@ -2,8 +2,13 @@ package frc.lib.hid;
 
 import org.wpilib.command2.button.CommandNiDsXboxController;
 
+/**
+ * Command-bindable gamepad with radial stick deadband. Values outside the deadband are not
+ * rescaled; DriveConstants performs the later speed shaping and coordinate conversion.
+ */
 public class ViXController extends CommandNiDsXboxController implements JoystickOutputController {
     private double JOYSTICK_DEADBAND = 0.1;
+    // These thresholds apply to getLT/getRT, not the inherited command Trigger factories.
     private double TRIGGER_DEADBAND = 0.25;
 
     public ViXController(int port) {

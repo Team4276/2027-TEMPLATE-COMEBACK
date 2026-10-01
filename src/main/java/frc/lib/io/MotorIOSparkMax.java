@@ -30,17 +30,22 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.UnaryOperator;
 
 /**
- * Tuning and setpoint with config change requests no work
+ * REV adapter for a leader and followers, with relative or absolute feedback on the leader.
+ * Basic setpoints work through MotorIO; TalonFX configuration mutations and live PID tuning
+ * through MotorSubsystem are not implemented here. Use SparkMaxConfig for REV configuration.
  */
 public class MotorIOSparkMax extends MotorIO {
 	protected final SparkMax main;
 	protected final SparkMax[] followers;
 	protected SparkMaxConfig config;
 	protected SparkMaxConfig followerConfig;
+	// Serialize potentially blocking configuration writes off the robot loop. Submitting a
+	// change does not mean it has reached the device when this method returns.
 	private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
-	private boolean configFailed = false;
+	// Latched after all retries fail; retained until robot code restarts.
+	private volatile boolean configFailed = false;
 	private boolean useAbsoluteEncoder = false;
 	private double positionFactor = 1.0;
 	private double velocityFactor = 1.0;
@@ -52,7 +57,7 @@ public class MotorIOSparkMax extends MotorIO {
 						PersistMode.kPersistParameters);
 				if (result == REVLibError.kOk) {
 					break;
-				} else {
+				} else if (i == 4) {
 					configFailed = true;
 				}
 			}
@@ -62,9 +67,14 @@ public class MotorIOSparkMax extends MotorIO {
 	@Override
 	public void updateInputs() {
 		inputs.enabled = getEnabled();
+		inputs.connected = main.getBusVoltage().isValid()
+				&& (useAbsoluteEncoder ? main.getAbsoluteEncoder().getPosition().isValid()
+						: main.getEncoder().getPosition().isValid());
 		inputs.setPointType = Mode.IDLE;
 		inputs.setPointValueAsDouble = 0.0;
 
+		// REV values enter as rotations/RPM. Apply the software mechanism scale, then convert
+		// to MotorIO's radians/rad/s. Setpoint methods undo this scale on the way out.
 		if (!useAbsoluteEncoder) {
 			inputs.position[0] = Rotations.of(main.getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
 			inputs.velocity[0] = RPM.of(main.getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
@@ -72,10 +82,11 @@ public class MotorIOSparkMax extends MotorIO {
 			inputs.position[0] = Rotations.of(main.getAbsoluteEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
 			inputs.velocity[0] = RPM.of(main.getAbsoluteEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
 		}
+		// Supply current is currently a copy of output current, not a separate bus measurement.
 		inputs.statorCurrent[0] = main.getOutputCurrent().get();
 		inputs.supplyCurrent[0] = main.getOutputCurrent().get();
 		inputs.motorVoltage[0] = main.getBusVoltage().get() * main.getAppliedOutput().get();
-		inputs.motorTemperature[0] = main.getMotorTemperature().get();
+		inputs.motorTemperature[0] = Units.Celsius.of(main.getMotorTemperature().get()).baseUnitMagnitude();
 		inputs.acceleration[0] = 0.0;
 
 		for (int i = 0; i < followers.length; i++) {
@@ -84,7 +95,7 @@ public class MotorIOSparkMax extends MotorIO {
 			inputs.statorCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.supplyCurrent[i + 1] = followers[i].getOutputCurrent().get();
 			inputs.motorVoltage[i + 1] = followers[i].getBusVoltage().get() * followers[i].getAppliedOutput().get();
-			inputs.motorTemperature[i + 1] = followers[i].getMotorTemperature().get();
+			inputs.motorTemperature[i + 1] = Units.Celsius.of(followers[i].getMotorTemperature().get()).baseUnitMagnitude();
 			inputs.acceleration[i + 1] = 0.0;
 		}
 
@@ -116,7 +127,7 @@ public class MotorIOSparkMax extends MotorIO {
 
 		// inputs.pidVoltage = Units.Volts.of(0.0);
 
-		inputs.configFailed = false;
+		inputs.configFailed = configFailed;
 	}
 
 	@Override
@@ -177,6 +188,8 @@ public class MotorIOSparkMax extends MotorIO {
 
 	@Override
 	public void setCurrentPosition(Angle mechanismPosition) {
+		// Only the relative encoder can be zeroed here. Absolute steering uses a mounting offset
+		// in SwerveModule instead; selecting absolute feedback does not change this method.
 		threadPoolExecutor.submit(() -> {
 			main.getEncoder().setPosition(mechanismPosition.div(positionFactor).in(Rotations));
 		});
@@ -207,12 +220,12 @@ public class MotorIOSparkMax extends MotorIO {
 
 	@Override
 	public void useSoftLimits(boolean enable) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Not implemented: MotorIO's soft-limit toggle has no Spark configuration translation.
 	}
 
 	@Override
 	public TalonFXConfiguration getMotorIOConfig() {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Compatibility placeholder only; this does not describe the Spark's current settings.
 		return new TalonFXConfiguration();
 	}
 
@@ -231,35 +244,34 @@ public class MotorIOSparkMax extends MotorIO {
 	}
 
 	public void setMainConfig(TalonFXConfiguration configuration) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// CTRE settings cannot be applied to REV hardware; use the SparkMaxConfig overload.
 	}
 
 	/**
-	 * Changes the currently applied main TalonFXConfiguration and applies the new
-	 * configuration to the main motor.
+	 * Unsupported CTRE configuration hook. The callback is not invoked for this adapter.
 	 *
 	 * @param configChanger Mutating operation to apply on the current
 	 *                      configuration.
 	 */
 	public void changeMainConfig(UnaryOperator<TalonFXConfiguration> configChanger) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// Consequently, MotorIO setpoints with dynamic CTRE current/voltage limits do not
+		// update those limits on a Spark; only their basic setpoint is applied.
 	}
 
 	/**
-	 * Changes the currently applied follower TalonFXConfiguration and applies the
-	 * new configuration to all follower motors.
+	 * Unsupported CTRE follower configuration hook; configure followers with SparkMaxConfig.
 	 *
 	 * @param configChanger Mutating operation to apply on the current
 	 *                      configuration.
 	 */
 	public void changeFollowerConfig(UnaryOperator<TalonFXConfiguration> configChanger) {
-		// hahahahahaha hahahahaHAha hahaHAhaha hahaha ha
+		// No CTRE-to-REV configuration translation is provided.
 	}
 
 	/**
-	 * Creates a MotorIOTalonFX from a provided configuration.
+	 * Creates a Spark MAX leader and followers from a provided configuration.
 	 *
-	 * @param config Configuration to create MotorIOTalonFX from.
+	 * @param config Device addresses, feedback selection, and REV settings.
 	 */
 	public MotorIOSparkMax(MotorIOSparkMaxConfig config) {
 		super(config.unit, config.time, config.followerIDs.length);
@@ -281,12 +293,14 @@ public class MotorIOSparkMax extends MotorIO {
 	}
 
 	/**
-	 * Configuration for a MotorIOTalonFX. Motion magic control is on slot 0,
-	 * velocity on slot 1, and position PID on slot 2.
+	 * Configuration for this adapter. Default setpoint slots are MAXMotion 0, velocity 1,
+	 * and position PID 2; explicit-slot setpoints override those defaults.
 	 */
 	public static class MotorIOSparkMaxConfig {
 		public AngleUnit unit = Units.Rotations;
 		public TimeUnit time = Units.Seconds;
+		// Software scales, separate from REV's device-side encoder conversion settings.
+		// Do not apply the same gear conversion both here and in SparkMaxConfig.
 		public double positionConversionFactor = 1.0;
 		public double velocityConversionFactor = 1.0;
 		public boolean useAbsoluteEncoder = false;

@@ -5,8 +5,9 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
- * Class creating a mutable object which can be mutated dynamically through
- * SmartDashboard
+ * Mutable dashboard value backed by AdvantageKit's logged NetworkTables number.
+ * A stable key lets live tuning values
+ * participate in logging/replay instead of bypassing the recorded input stream.
  */
 public class TunableNumber implements DoubleSupplier {
 	private static final String TABLE_KEY = "TunableNumbers";
@@ -62,6 +63,8 @@ public class TunableNumber implements DoubleSupplier {
 	 * Returns true is the current value is different from the last current value
 	 */
 	public boolean hasChanged() {
+		// Checking consumes the change for this instance; it is not an independent subscription
+		// per caller. Keep one owner for change detection when sharing a TunableNumber.
 		currentValue = getAsDouble();
 		if (currentValue != lastCurrentValue) {
 			lastCurrentValue = currentValue;

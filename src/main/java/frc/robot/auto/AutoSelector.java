@@ -13,6 +13,10 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkChooser;
 import org.wpilib.command2.Command;
 import frc.robot.auto.autos.ExampleAuto;
 
+/**
+ * Registers available routines lazily so selecting an auto creates its commands and starting pose.
+ * The logged network chooser is the selection source used by Robot; AutoChooser is also exposed.
+ */
 public class AutoSelector {
     private AutoChooser mAutoChooser = new AutoChooser();
     private LoggedNetworkChooser<Supplier<AutoRoutine>> mNetworkChooser = new LoggedNetworkChooser<Supplier<AutoRoutine>>("AutoChooserAkit");
@@ -56,6 +60,7 @@ public class AutoSelector {
     }
 
     public Pose2d getSelectedAutoStartingPose() {
+        // Evaluating the supplier updates startPose for the current selection as a side effect.
         mNetworkChooser.get().get();
         return startPose;
     }

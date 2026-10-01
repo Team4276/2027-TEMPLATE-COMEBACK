@@ -2,6 +2,10 @@ package frc.lib.hid;
 
 import org.wpilib.driverstation.Joystick;
 
+/**
+ * Two physical joysticks presented through the same stick-vector interface as the gamepad.
+ * Deadband removes a circle around center; surviving values retain their original magnitude.
+ */
 public class CowsController implements JoystickOutputController {
     private double JOYSTICK_DEADBAND = 0.1;
 

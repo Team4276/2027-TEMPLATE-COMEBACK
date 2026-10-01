@@ -27,6 +27,8 @@ public class MotorIOTalonFXSim extends MotorIOTalonFX {
 		notifier = new Notifier(() -> {
 			runSimulation();
 		});
+		// Run physics nominally every 5 ms, independently of the scheduler. MechanismSim
+		// integrates the actual elapsed time so notifier timing jitter is included.
 		notifier.startPeriodic(0.005);
 	}
 
@@ -40,6 +42,7 @@ public class MotorIOTalonFXSim extends MotorIOTalonFX {
 	}
 
 	private void runSimulation() {
+		// Close the simulation loop: controller voltage -> physics -> rotor sensor feedback.
 		sim.setVoltage(Units.Volts.of(main.getSimState().getMotorVoltage()).times(getMotorInvertMultiplier()));
 		sim.simulate();
 		updateSimStates();
@@ -72,6 +75,8 @@ public class MotorIOTalonFXSim extends MotorIOTalonFX {
 	 * Updates the main motor's simulation state.
 	 */
 	private void updateSimStates() {
+		// Physics uses mechanism coordinates; Phoenix simulation expects raw rotor coordinates.
+		// Account for both gearing and inversion, with an ideal fixed 12 V supply (no battery sag).
 		main.getSimState()
 				.setRotorVelocity(sim.mechanismToRotor(sim.getVelocity().times(getMotorInvertMultiplier())));
 		main.getSimState()

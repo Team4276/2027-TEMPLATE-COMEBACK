@@ -3,6 +3,11 @@ package frc.lib.util;
 import org.wpilib.math.controller.PIDController;
 import frc.robot.RobotConstants;
 
+/**
+ * PID controller whose two-argument calculate call polls logged dashboard gains when tuning is on.
+ * Reusing a key shares tuning values across controllers (for example trajectory X/Y) while each
+ * controller retains its own error history. Tuning here is not gated on robot disabled state.
+ */
 public class LoggedTunablePID extends PIDController {
     public final TunableNumber Kp;
     public final TunableNumber Ki;

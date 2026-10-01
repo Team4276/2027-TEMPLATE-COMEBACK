@@ -1,3 +1,5 @@
+// Use the wrapper (gradlew.bat on Windows) with JDK 25. This project targets the
+// 2027 alpha SystemCore toolchain; vendor manifests in vendordeps pin its dependencies.
 plugins {
     id "java"
     id "application"
@@ -35,7 +37,9 @@ deploy {
                     debugJni = false
                 }
 
-                // Static files artifact
+                // Static files artifact. The swerve JSON files are retained YAGSL configuration;
+                // the active DriveIOScuffed reads Java DriveConstants/Ports instead.
+                // Choreo .traj files, when added under deploy/choreo, are loaded by AutoSelector.
                 wpilibStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
                     files = project.fileTree('src/main/deploy')
                     directory = '/home/systemcore/deploy'
@@ -76,6 +80,8 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
     
+    // Keep generated *InputsAutoLogged classes on the same version as the logging runtime.
+    // Edit @AutoLog input schemas in src, not generated files beneath build/.
     def akitJson = new groovy.json.JsonSlurper().parseText(new File(projectDir.getAbsolutePath() + "/vendordeps/AdvantageKit.json").text)
     annotationProcessor "org.littletonrobotics.akit:akit-autolog:$akitJson.version"
 
@@ -83,6 +89,7 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// ./gradlew test runs the existing regression suite; build also packages the application.
 test {
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
@@ -103,6 +110,7 @@ deployArtifact.configureApplication(application)
 wpi.java.configureApplication(application)
 wpi.java.configureTestTasks(test)
 
+// Embed the source/configuration with the robot artifact for later inspection of deployed code.
 jar {
     from('src') { into 'backup/src' }
     from('vendordeps') { into 'backup/vendordeps' }

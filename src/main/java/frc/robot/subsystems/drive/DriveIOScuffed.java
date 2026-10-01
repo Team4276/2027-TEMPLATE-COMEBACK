@@ -1,16 +1,14 @@
 package frc.robot.subsystems.drive;
 
-import static org.wpilib.units.Units.Celsius;
-
 import org.wpilib.math.geometry.Pose2d;
 import org.wpilib.math.kinematics.ChassisVelocities;
 // import frc.lib.util.vision.VisionEstimate;
-import org.wpilib.units.measure.Temperature;
 
 import frc.robot.subsystems.drive.scuffed.SwerveDrive;
 import frc.robot.subsystems.drive.scuffed.SwerveModule;
 import frc.robot.subsystems.drive.scuffed.SwerveModule.ModulePosition;
 
+/** Adapts the local four-module swerve implementation to the logged DriveIO schema. */
 public class DriveIOScuffed implements DriveIO {
     private final SwerveDrive mSwerveDrive = new SwerveDrive();
 
@@ -19,6 +17,7 @@ public class DriveIOScuffed implements DriveIO {
 
     @Override
     public void updateInputs(DriveIOInputs inputs) {
+        // Refresh sensors and odometry once before copying a consistent loop's telemetry.
         mSwerveDrive.updateTelemetry();
 
         inputs.pose = mSwerveDrive.getPose();
@@ -29,48 +28,38 @@ public class DriveIOScuffed implements DriveIO {
         inputs.modulesPositions = mSwerveDrive.getModulePositions();
         inputs.moduleStates = mSwerveDrive.getModuleVelocities();
 
-        // Ha who needs exception handling
         inputs.module0Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.FRONT_LEFT));
         inputs.module1Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.FRONT_RIGHT));
         inputs.module2Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.BACK_LEFT));
         inputs.module3Inputs = getFromModule(mSwerveDrive.getModule(ModulePosition.BACK_RIGHT));
+        for (ModulePosition position : ModulePosition.values()) {
+            var module = mSwerveDrive.getModule(position);
+            inputs.driveConfigFailed[position.ordinal()] = module.mDriveFx.inputs.configFailed;
+            inputs.turnConfigFailed[position.ordinal()] = module.mTurnSpark.inputs.configFailed;
+        }
     }
 
     private ModuleInput getFromModule(SwerveModule module) {
-        // return new ModuleInput(
-        //         true,
-        //         module.mDriveFx.getPosition(),
-        //         module.mDriveFx.getVelocity(),
-        //         module.mDriveFx.getMotorVoltage(),
-        //         module.mDriveFx.getSupplyCurrent(),
-        //         module.mDriveFx.getStatorCurrent(),
-        //         Temperature.ofBaseUnits(0, Celsius),
-        //         true,
-        //         module.mTurnSpark.getPosition(),
-        //         module.mTurnSpark.getVelocity(),
-        //         module.mTurnSpark.getMotorVoltage(),
-        //         module.mTurnSpark.getSupplyCurrent(),
-        //         module.mTurnSpark.getStatorCurrent(),
-        //         Temperature.ofBaseUnits(0, Celsius));
         return new ModuleInput(
-                true,
+                module.mDriveFx.inputs.connected,
                 module.mDriveFx.getPosition().baseUnitMagnitude(),
                 module.mDriveFx.getVelocity().baseUnitMagnitude(),
                 module.mDriveFx.getMotorVoltage().baseUnitMagnitude(),
                 module.mDriveFx.getSupplyCurrent().baseUnitMagnitude(),
                 module.mDriveFx.getStatorCurrent().baseUnitMagnitude(),
-                Temperature.ofBaseUnits(0, Celsius).baseUnitMagnitude(),
-                true,
+                module.mDriveFx.inputs.motorTemperature[0],
+                module.mTurnSpark.inputs.connected,
                 module.mTurnSpark.getPosition().baseUnitMagnitude(),
                 module.mTurnSpark.getVelocity().baseUnitMagnitude(),
                 module.mTurnSpark.getMotorVoltage().baseUnitMagnitude(),
                 module.mTurnSpark.getSupplyCurrent().baseUnitMagnitude(),
                 module.mTurnSpark.getStatorCurrent().baseUnitMagnitude(),
-                Temperature.ofBaseUnits(0, Celsius).baseUnitMagnitude());
+                module.mTurnSpark.inputs.motorTemperature[0]);
     }
 
     @Override
     public void updateSim() {
+        // Placeholder: this adapter currently has no drivetrain physics integration.
         // mSwerveDrive.simIterate();
     }
 

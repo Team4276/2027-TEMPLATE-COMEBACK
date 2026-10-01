@@ -11,6 +11,7 @@ import frc.lib.io.MotorIOSparkMax.MotorIOSparkMaxConfig;
 import frc.robot.Ports;
 import frc.robot.RobotConstants;
 
+/** REV deploy setup and signed output presets; the signs are interpreted after motor inversion. */
 public class IntakeDeployConstants {
     public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
     public static final Voltage kDeployVoltage = Units.Volts.of(6.0);
@@ -42,6 +43,8 @@ public class IntakeDeployConstants {
     }
 
     public static MotorIO getMotorIO() {
+        // SIM currently has no physics model. REPLAY leaves reads empty so the logging layer
+        // can populate recorded inputs without constructing hardware.
         return switch (RobotConstants.mode) {
             case REAL -> new MotorIOSparkMax(getIOConfig());
             case SIM -> new MotorIO(Units.Rotations, Units.Minutes) {

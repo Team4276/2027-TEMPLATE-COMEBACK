@@ -15,6 +15,8 @@ public class DelayedBoolean {
 	}
 
 	public boolean update(double timestamp, boolean value) {
+		// Timestamp and delay use the same units (callers use seconds). False clears immediately;
+		// every rising edge starts a new dwell, so intermittent true samples cannot accumulate.
 		boolean result = false;
 
 		if (value && !mLastValue) {

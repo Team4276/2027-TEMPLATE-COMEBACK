@@ -20,6 +20,7 @@ import frc.robot.Ports;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
 
+/** Shooter speed/configuration values; tolerance and inertia still need mechanism validation. */
 public class FlywheelConstants {
     public static final double kGearing = 1.0;
 
@@ -64,6 +65,8 @@ public class FlywheelConstants {
         config.mainID = Ports.FLYWHEEL_RIGHT.id;
         config.mainBus = Ports.FLYWHEEL_RIGHT.bus;
         config.mainConfig = getFXConfig();
+        // The right motor owns the setpoint; the left follows its output rather than running
+        // an independent velocity command. Follower IDs, buses, and alignment arrays correspond.
         config.followerIDs = new int[]{Ports.FLYWHEEL_LEFT.id};
         config.followerConfig = getFXConfig();
         config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
@@ -72,6 +75,7 @@ public class FlywheelConstants {
     }
 
     public static MotorIO getMotorIO() {
+        // Reuse the controller with simulated rotor feedback in SIM; REPLAY uses logged inputs.
         return switch (RobotConstants.mode) {
             case REAL -> new MotorIOTalonFX(getIOConfig());
             case SIM -> new MotorIOTalonFXSim(getIOConfig(), new RollerSim(getSimConstants()));
@@ -86,6 +90,7 @@ public class FlywheelConstants {
     public static RollerSimConstants getSimConstants() {
         RollerSimConstants simConstants = new RollerSimConstants();
 
+        // Treat both motors as driving one combined rotating load.
         simConstants.motor = DCMotor.getKrakenX60(2);
         simConstants.gearing = kGearing;
         // TODO: moment of inertia (kg*m^2)

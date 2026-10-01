@@ -18,9 +18,12 @@ import java.util.function.Function;
 
 import org.littletonrobotics.junction.Logger;
 
+/** Jogging helpers for incrementally adjusting persistent MotorIO requests from buttons. */
 public class ControllerUtil {
 
 	public static Setpoint createFromMode(Mode mode, double baseUnits) {
+		// Values must already be SI/base units (radians, rad/s, volts, or duty fraction), not RPM
+		// or degrees. IDLE deliberately selects the coast request in this helper.
 		return switch (mode) {
 			case IDLE -> Setpoint.withCoastSetpoint();
 			case VOLTAGE -> Setpoint.withVoltageSetpoint(BaseUnits.VoltageUnit.of(baseUnits));
@@ -90,6 +93,7 @@ public class ControllerUtil {
 				.andThen(Commands.waitTime(continousDelay))
 				.repeatedly();
 
+		// Intentional fall-through: three triggers also install the two- and one-trigger bindings.
 		switch (triggers.length) {
 			case 3:
 				triggers[2].onTrue(subsystem.setpointCommand(startSetpoint));

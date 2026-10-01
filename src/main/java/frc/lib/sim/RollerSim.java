@@ -13,6 +13,8 @@ import org.wpilib.simulation.FlywheelSim;
 /**
  * Class for simulating a rolling system powerd by one or more motors like a
  * shooter.
+ * Models speed/current only: position is always zero, so this model is unsuitable for odometry
+ * or position-controlled mechanisms. Load from game pieces is not included.
  */
 public class RollerSim extends MechanismSim {
 	protected final FlywheelSim sim;
@@ -40,7 +42,7 @@ public class RollerSim extends MechanismSim {
 	public static class RollerSimConstants {
 		public DCMotor motor;
 		public double gearing;
-		public double momentOfInertia;
+		public double momentOfInertia; // Combined rotating load in kg*m^2.
 	}
 
 	@Override

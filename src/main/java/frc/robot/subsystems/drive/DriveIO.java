@@ -16,10 +16,17 @@ import org.wpilib.units.measure.Angle;
 // import org.wpilib.units.measure.Voltage;
 // import frc.lib.util.vision.VisionEstimate;
 
+/**
+ * Boundary between command logic and drivetrain implementation. Empty defaults allow a passive
+ * implementation; hardware updates and simulation behavior must be supplied by an adapter.
+ */
 public interface DriveIO {
+    // AutoLog generates DriveIOInputsAutoLogged; edit this schema, not generated build output.
     @AutoLog
     public static class DriveIOInputs {
         Pose2d pose = Pose2d.ZERO;
+        boolean[] driveConfigFailed = new boolean[4];
+        boolean[] turnConfigFailed = new boolean[4];
         Angle gyroAngle = Units.Degrees.of(0);
         ChassisVelocities fieldRelativeSpeed = new ChassisVelocities();
         ChassisVelocities robotRelativeSpeed = new ChassisVelocities();
@@ -27,10 +34,10 @@ public interface DriveIO {
         SwerveModulePosition[] modulesPositions = new SwerveModulePosition[] {};
         SwerveModuleVelocity[] moduleStates = new SwerveModuleVelocity[] {};
 
-        ModuleInput module0Inputs = new ModuleInput(true, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, 0);
-        ModuleInput module1Inputs = new ModuleInput(true, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, 0);
-        ModuleInput module2Inputs = new ModuleInput(true, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, 0);
-        ModuleInput module3Inputs = new ModuleInput(true, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, 0);
+        ModuleInput module0Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);
+        ModuleInput module1Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);
+        ModuleInput module2Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);
+        ModuleInput module3Inputs = new ModuleInput(false, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 0, 0);
 
         // ModuleInput module0Inputs = new ModuleInput(
         //     true,
@@ -111,6 +118,7 @@ public interface DriveIO {
     public default void resetPose(Pose2d pose) {
     }
 
+    /** Requests field-relative translation in m/s and rotation in rad/s. */
     public default void drive(ChassisVelocities speeds) {
     }
 
@@ -135,6 +143,11 @@ public interface DriveIO {
     //         Temperature turnTemp) {
     // }
     
+    /**
+     * Flattened motor measurements for logging. Angles and angular speeds are base units
+     * (radians and rad/s), even where the legacy field name says "rotor": the adapters may
+     * already account for gearing. Temperatures follow the motor adapter's representation.
+     */
     public static record ModuleInput(
             boolean driveConnected,
             double driveRotorPosition,

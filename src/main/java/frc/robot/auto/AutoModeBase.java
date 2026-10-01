@@ -13,6 +13,7 @@ import org.wpilib.command2.Commands;
 import frc.robot.game.FieldLayout;
 import java.util.List;
 
+/** Wraps a Choreo routine with trajectory-loading, sequencing, and optional field-width mirroring. */
 public class AutoModeBase {
 	private AutoRoutine routine;
 
@@ -48,6 +49,8 @@ public class AutoModeBase {
 	}
 
 	private static SwerveSample mirrorSwerveSampleAcrossY(SwerveSample sample, double fieldWidthMeters) {
+		// Reflect across y = fieldWidth / 2, not across alliances. X stays fixed while Y and
+		// angular derivatives reverse sign. Swap left/right module forces to match the reflection.
 		double[] fx = sample.moduleForcesX();
 		double[] fy = sample.moduleForcesY();
 		double[] mirroredFx = new double[] { fx[1], fx[0], fx[3], fx[2] };
@@ -85,10 +88,12 @@ public class AutoModeBase {
 	}
 
 	public Pose2d getInitialPose() {
+		// Concrete autos override this for the disabled-mode pose reset; origin is only a fallback.
 		return new Pose2d();
 	}
 
 	public void prepRoutine(Command... steps) {
+		// Register the sequence on activation rather than scheduling during robot construction.
 		routine.active().onTrue(Commands.sequence(steps).withName("Auto Routine Sequential Command Group"));
 	}
 

@@ -4,6 +4,7 @@ import org.wpilib.hardware.bus.CANPort;
 
 import com.ctre.phoenix6.CANBus;
 
+/** Shared runtime selection and CAN buses; subsystem factories consult this before creating IO. */
 public class RobotConstants {
     public static enum Mode {
         /** Running on a real robot. */
@@ -25,6 +26,8 @@ public class RobotConstants {
         SIMBOT
     }
 
+    // Explicit template setting, not automatically selected by the desktop simulation launcher.
+    // Set this before any subsystem singleton is initialized.
     public static Mode mode = Mode.REAL;
 
     public static RobotType getType() {
@@ -43,6 +46,7 @@ public class RobotConstants {
     public static final CANBus S3 = new CANBus(CANPort.CAN_S3);
     public static final CANBus S4 = new CANBus(CANPort.CAN_S4);
 
+    // Enables live dashboard gains/setpoints; disable when fixed competition values are desired.
     public static final boolean isTuning = true;
 
     public static final boolean simulateVision = false;

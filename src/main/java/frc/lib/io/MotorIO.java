@@ -21,12 +21,19 @@ import org.littletonrobotics.junction.AutoLog;
 /**
  * Abstract class used to control a main motor and any number of followers for a
  * mechanism.
+ *
+ * <p>Subsystems submit typed Setpoints and read cached inputs; adapters translate to vendor APIs.
+ * Position/velocity inputs use mechanism radians and rad/s, independent of the display units.
+ * Configuration-changing helpers are Talon-specific even though basic setpoints are shared.
  */
 public abstract class MotorIO {
 	
 	@AutoLog
 	public static class MotorIOInputs {
+		// Primitive arrays are the log schema: index 0 is the leader, then followers in config order.
+		// Store base-unit magnitudes so getters can reconstruct typed measurements consistently.
 		public boolean enabled = true;
+		public boolean connected = false;
 		public Mode setPointType = Mode.IDLE;
 		public double setPointValueAsDouble = 0.0;
 
@@ -89,6 +96,7 @@ public abstract class MotorIO {
 	}
 
 	public TalonFXConfiguration getMotorIOConfig() {
+		// Adapters without CTRE configuration support return a placeholder, not device readback.
 		return new TalonFXConfiguration();
 	}
 
@@ -212,6 +220,8 @@ public abstract class MotorIO {
 	 * @param setpointToApply
 	 */
 	public final void applySetpoint(Setpoint setpointToApply) {
+		// Remember requests even while locally disabled so enable() can restore the latest one.
+		// This local gate is separate from the Driver Station's enabled/disabled state.
 		setpoint = setpointToApply;
 		if (enabled) {
 			setpointToApply.apply(this);
@@ -424,7 +434,13 @@ public abstract class MotorIO {
 	}
 
 	/**
-	 * Setpoint for a MotorIO.
+	 * A motor request packaged with its control mode and target in base units. The captured
+	 * applier keeps vendor dispatch out of subsystem commands; mode/target let readiness checks
+	 * inspect the request without executing it. Constructing a Setpoint does not move hardware.
+	 *
+	 * <p>Helpers that change current/voltage limits use CTRE configuration hooks. Their guards
+	 * compare only stator current or forward voltage, respectively, so changing just the paired
+	 * supply-current/reverse-voltage value does not trigger a configuration write.
 	 */
 	public static class Setpoint {
 

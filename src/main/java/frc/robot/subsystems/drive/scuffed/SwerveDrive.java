@@ -17,6 +17,10 @@ import frc.robot.Ports;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.scuffed.SwerveModule.ModulePosition;
 
+/**
+ * Converts chassis motion into wheel commands and integrates wheel distances with gyro heading.
+ * All module arrays use FRONT_LEFT, FRONT_RIGHT, BACK_LEFT, BACK_RIGHT order, matching kinematics.
+ */
 public class SwerveDrive {
     private final SwerveModule[] modules;
     private final SwerveDriveKinematics kinematics;
@@ -42,6 +46,7 @@ public class SwerveDrive {
         return () -> gyro.getYaw(true).getValue();
     }
 
+    // Injection keeps geometry and odometry testable without constructing CAN devices.
     SwerveDrive(SwerveModule[] modules, Supplier<Angle> gyroAngle, Translation2d[] moduleTranslations) {
         this.modules = modules;
         this.gyroAngle = gyroAngle;
@@ -102,11 +107,15 @@ public class SwerveDrive {
     }
 
     public void setFieldRelativeChassisVelocities(ChassisVelocities velocities) {
+        // Use the odometry heading so pose resets also change the driver/path reference frame.
         setRobotRelativeChassisVelocities(velocities.toRobotRelative(getPose().getRotation()));
     }
 
     public void setRobotRelativeChassisVelocities(ChassisVelocities velocities) {
         var moduleVelocities = kinematics.toSwerveModuleVelocities(velocities);
+        // Scale all wheels together when any exceeds the limit, preserving their speed ratios.
+        moduleVelocities = SwerveDriveKinematics.desaturateWheelVelocities(
+                moduleVelocities, DriveConstants.kMaxVelocity);
 
         for (int i = 0; i < 4; i++) {
             modules[i].setVelocity(moduleVelocities[i]);

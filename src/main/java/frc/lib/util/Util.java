@@ -156,6 +156,8 @@ public class Util {
 	}
 
 	public static double handleDeadband(double value, double deadband) {
+		// Unlike the HID wrappers' radial cutoff, this rescales the remaining scalar range
+		// continuously from zero to full output. Callers should supply a deadband in [0, 1].
 		deadband = Math.abs(deadband);
 		if (deadband == 1) {
 			return 0;
@@ -176,6 +178,10 @@ public class Util {
 	// original.getMeasureY(), new Rotation2d());
 	// }
 
+	/**
+	 * Reuses a non-null result while the supplied loop counter is unchanged. Useful when several
+	 * consumers need the same calculation in one robot loop; null results are recomputed.
+	 */
 	public static <T> Supplier<T> memoizeByIteration(IntSupplier iteration, Supplier<T> delegate) {
 		AtomicReference<T> value = new AtomicReference<>();
 		AtomicInteger last_iteration = new AtomicInteger(-1);
@@ -199,6 +205,8 @@ public class Util {
 	 * elevators to interface with the IO layer which only supports angles.
 	 */
 	public static class DistanceAngleConverter {
+		// Uses arc length s = r * theta, with theta in radians. Radius is at the mechanism drum;
+		// motor-to-drum gearing remains the responsibility of the IO configuration.
 		private final Distance radius;
 
 		public DistanceAngleConverter(Distance radius) {
@@ -289,6 +297,7 @@ public class Util {
 		}
 	}
 
+	/** Lookup table that interpolates typed measurements without discarding their physical units. */
 	public static class InterpolatingMeasureMap<J extends Measure<U>, U extends Unit, K extends Measure<Q>, Q extends Unit>
 			extends InterpolatingTreeMap<J, K> {
 		public InterpolatingMeasureMap() {
@@ -424,8 +433,11 @@ public class Util {
 	 * @param radius1 Radius of the first circle
 	 * @param center2 Center point of the second circle
 	 * @param radius2 Radius of the second circle
-	 * @return An ArrayList containing all intersection points of the circle.
-	 *         ArrayList may have 0, 1, or 2 values.
+	 * <p>The current implementation only rejects externally separated circles. Callers must handle
+	 * concentric/nested circles separately; tangency may produce duplicate coordinates because
+	 * the final comparison checks object identity rather than geometric equality.
+	 *
+	 * @return Computed intersections, or an empty list when externally separated.
 	 */
 	public static ArrayList<Translation2d> getCircleIntersectionPoints(
 			Translation2d center1, double radius1, Translation2d center2, double radius2) {
@@ -438,6 +450,8 @@ public class Util {
 			return allPoints; // Circles do not intersect
 		}
 
+		// Project the common chord onto the line between centers, then offset perpendicular
+		// to that line by the chord's half-height to obtain the two intersection candidates.
 		double a = (radius1 * radius1 - radius2 * radius2 + distance * distance) / (2 * distance);
 		double h = Math.sqrt(radius1 * radius1 - a * a);
 
@@ -464,11 +478,13 @@ public class Util {
 		return s;
 	}
 
+	/** Adds field-coordinate components; this is not composition of robot-relative transforms. */
 	public static Pose2d addPoses(Pose2d a, Pose2d b) {
 		return new Pose2d(
 				a.getTranslation().plus(b.getTranslation()), a.getRotation().plus(b.getRotation()));
 	}
 
+	/** Smallest absolute unwrapped angle difference; callers should provide a nonempty collection. */
 	public static Angle getLowestDelta(Angle base, Collection<Angle> options) {
 		double lowestRotation = Double.MAX_VALUE;
 		for (Angle a : options) {
@@ -495,6 +511,11 @@ public class Util {
 		return x.gt(y) ? x : y;
 	}
 
+	/**
+	 * Attempts scheduling once during initialize, only if every required subsystem is idle.
+	 * A running default command also counts as occupied. The wrapper has no finish override,
+	 * so its own lifetime is independent of whether the child was scheduled or has completed.
+	 */
 	public static class ScheduleIfWontCancelOther extends Command {
 		private final Command command;
 
@@ -513,6 +534,10 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Aiming helper using a fixed positive flight time and current chassis velocity. This is a
+	 * constant-velocity estimate; it does not model projectile drag, gravity, or robot acceleration.
+	 */
 	public static Angle calculateNeededFieldRelativeHoldAngle(
 			SwerveDriveState driveState, Translation2d targetPose, Time time) {
 
@@ -543,6 +568,10 @@ public class Util {
 		return fieldRelativeDesiredAngle;
 	}
 
+	/**
+	 * Estimates distance with separate raised/stowed acceleration magnitudes. Inputs must use
+	 * consistent distance/second units and a nonzero stowed acceleration; no validation is applied.
+	 */
 	public static double calculateDistanceToStartDeccel(
 			double currentVel, double stowedAccel, double raisedAccel, double timeToRaise) {
 		double distToRaiseElev = calculatDistanceToRaiseElevator(raisedAccel, timeToRaise);
@@ -576,6 +605,7 @@ public class Util {
 	// return addToTranslation3d(Translation3d.kZero, axis, offset);
 	// }
 
+	/** Swaps X/Y for the assumed CAD orientation; not a general conversion for every Onshape model. */
 	public static Translation3d convertOnshapeToWPI(Translation3d translation) {
 		return new Translation3d(translation.getY(), translation.getX(), translation.getZ());
 	}
@@ -587,6 +617,7 @@ public class Util {
 	// .build();
 	// }
 
+	/** Axis-wise 0.2 m / 5 degree check; heading differences are not wrapped across +/-180 degrees. */
 	public static boolean testCurrentPose(Pose2d targetPose, Pose2d currentPose) {
 		return Math.abs(targetPose.getX() - currentPose.getX()) <= 0.2
 				&& Math.abs(targetPose.getY() - currentPose.getY()) <= 0.2
