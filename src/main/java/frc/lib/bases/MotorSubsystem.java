@@ -63,6 +63,8 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 		this.io = io;
 		this.name = name;
 		this.tuningMode = tuningMode; // This should never be on for subsystems without PID
+		// MotorIO's initial neutral value is only bookkeeping until it is sent to hardware.
+		io.applySetpoint(Setpoint.withNeutralSetpoint());
 		tuning(name);
 	}
 
@@ -248,6 +250,11 @@ public class MotorSubsystem<IO extends MotorIO> extends SubsystemBase {
 	 */
 	public void applySetpoint(Setpoint setpoint) {
 		io.applySetpoint(setpoint);
+	}
+
+	/** Stops output and replaces the retained request, including one queued while locally disabled. */
+	public void stop() {
+		io.applySetpoint(Setpoint.withNeutralSetpoint());
 	}
 
 	/**

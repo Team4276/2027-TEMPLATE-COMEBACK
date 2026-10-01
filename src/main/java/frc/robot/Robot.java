@@ -23,6 +23,7 @@ import frc.lib.util.LoggedTracer;
 import frc.robot.auto.AutoSelector;
 import frc.robot.controlboard.ControlBoard;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.superstructure.Superstructure;
 
 /**
  * Application lifecycle: starts logging, connects autonomous callbacks, and runs the command scheduler.
@@ -122,6 +123,9 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void disabledInit() {
+        // Instant mechanism commands finish while their motor requests remain active. Replace
+        // those requests so the next enable cannot resume an earlier shot/feed/intake action.
+        Superstructure.mInstance.stopAll();
     }
 
     @Override
@@ -139,6 +143,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
+        Superstructure.mInstance.stopAll();
         mAutonomousCommand = mAutoSelector.getSelectedCommand();
 
         if (mAutonomousCommand != null) {
@@ -160,6 +165,7 @@ public class Robot extends LoggedRobot {
         if (mAutonomousCommand != null) {
             mAutonomousCommand.cancel();
         }
+        Superstructure.mInstance.stopAll();
     }
 
     @Override

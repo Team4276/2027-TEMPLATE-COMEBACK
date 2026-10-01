@@ -5,7 +5,7 @@ import org.wpilib.units.measure.Time;
 
 /** Operator interface settings; USB ports are Driver Station slots, independent of motor CAN IDs. */
 public class ControlBoardConstants {
-    // Limits manual driving to 20% and skips mechanism bindings during drivetrain bring-up.
+    // Limits manual driving to 20%, neutralizes/inhibits mechanism IO, and skips their bindings.
     public static final boolean kDriveBringupMode = true;
 	public static enum InputMode {
 		CONTROLLER,

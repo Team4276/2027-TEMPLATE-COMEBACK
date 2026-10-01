@@ -3,6 +3,7 @@ package frc.robot.subsystems.superstructure;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.SubsystemBase;
 
+import frc.lib.bases.MotorSubsystem;
 import frc.lib.io.MotorIO.Setpoint;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.flywheels.Flywheel;
@@ -19,6 +20,30 @@ public class Superstructure extends SubsystemBase {
 
     @Override
     public void periodic() {
+    }
+
+    private MotorSubsystem<?>[] getMechanisms() {
+        // Resolve every singleton even when bring-up mode skips their button bindings.
+        // Unconstructed subsystems cannot send a neutral request to their motor controllers.
+        return new MotorSubsystem<?>[] {
+                Flywheel.mInstance, Feeder.mInstance, Hopper.mInstance,
+                IntakeDeploy.mInstance, IntakeRollers.mInstance
+        };
+    }
+
+    /** Clears persistent requests before a new enabled period. */
+    public void stopAll() {
+        for (MotorSubsystem<?> mechanism : getMechanisms()) {
+            mechanism.stop();
+        }
+    }
+
+    /** Inhibits mechanism output during drivetrain bring-up, even if another command requests it. */
+    public void disableAll() {
+        for (MotorSubsystem<?> mechanism : getMechanisms()) {
+            mechanism.stop();
+            mechanism.disable();
+        }
     }
 
     public Command idleIntake() {

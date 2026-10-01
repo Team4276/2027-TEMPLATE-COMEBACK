@@ -44,7 +44,12 @@ public class ControlBoard extends SubsystemBase {
 		mDriver.start()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
 
-		if (!ControlBoardConstants.kDriveBringupMode) {
+		// Skipping bindings alone leaves mechanism hardware unmanaged. Initialize every motor
+		// with an explicit neutral request, then inhibit outputs when only testing the drivetrain.
+		Superstructure.mInstance.stopAll();
+		if (ControlBoardConstants.kDriveBringupMode) {
+			Superstructure.mInstance.disableAll();
+		} else {
 			driverControls();
 		}
 		// bringupControls();
