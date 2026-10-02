@@ -47,12 +47,13 @@ public class DriveConstants {
             new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0)
     };
     
-    // Absolute encoder readings with each wheel pointing forward; applied in SwerveModule.
+    // Zero each absolute encoder with the wheel pointing straight forward. In that setup, the
+    // module's sensor angle should read 0 when the wheel is pointed forward.
     public static final Angle[] turnOffsets = {
-            Degrees.of(101.8), // FL
-            Degrees.of(175.2), // FR
-            Degrees.of(8.1), // BL
-            Degrees.of(148.6) // BR
+            Degrees.of(0.0), // FL
+            Degrees.of(0.0), // FR
+            Degrees.of(0.0), // BL
+            Degrees.of(0.0) // BR
     };
     
     public static final double wheelRadiusMeters = Units.inchesToMeters(1.47);
@@ -85,8 +86,6 @@ public class DriveConstants {
         // Report wheel rotations instead of rotor rotations so gearing is not applied twice.
         config.Feedback.SensorToMechanismRatio = driveMotorReduction;
 
-        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-
         return config;
     }
 
@@ -96,6 +95,10 @@ public class DriveConstants {
         config.time = org.wpilib.units.Units.Minutes;
         config.mainID = port.id;
         config.mainConfig = getFXConfig();
+        config.mainConfig.MotorOutput.Inverted = switch (port) {
+            case FRONT_RIGHT_DRIVE, BACK_LEFT_DRIVE -> InvertedValue.CounterClockwise_Positive;
+            default -> InvertedValue.Clockwise_Positive;
+        };
         config.mainBus = port.bus;
         // Swerve supplies instantaneous wheel speeds; no Motion Magic profile is configured.
         config.requestGetter = new ControlRequestGetter() {
@@ -147,25 +150,27 @@ public class DriveConstants {
         return config;
     }
 
-    static ChassisVelocities getRequestedSpeeds(double forwardInput, double rotationInput) {
-        // Xbox Y is negative forward. Teleop deliberately ignores left X: the driver wants
-        // forward/backward only on the left stick, with robot rotation on right X.
+    static ChassisVelocities getRequestedSpeeds(double forwardInput, double strafeInput) {
+        // Use the left stick as a standard swerve joystick: Y is forward/back and X is side-to-side.
+        // When the robot strafes sideways, the kinematics naturally command the wheel azimuths to
+        // about 90° / 270° (0.25 / 0.75 rotations), matching the REV encoder reference for a
+        // sideways-facing wheel.
         double forward = Math.clamp(-forwardInput, -1.0, 1.0);
-        double rotation = Math.clamp(-rotationInput, -1.0, 1.0);
+        double strafe = Math.clamp(strafeInput, -1.0, 1.0);
         double speedScale = ControlBoardConstants.kDriveSpeedScale;
+
         // Signed squares preserve direction while making small stick movements gentler.
-        // These are robot-relative speeds; no alliance or heading rotation belongs here.
         return new ChassisVelocities(
                 Math.copySign(forward * forward, forward) * kMaxVelocity.baseUnitMagnitude() * speedScale,
-                0.0,
-                Math.copySign(rotation * rotation, rotation) * kMaxOmega.baseUnitMagnitude() * speedScale);
+                Math.copySign(strafe * strafe, strafe) * kMaxVelocity.baseUnitMagnitude() * speedScale,
+                0.0);
     }
 
     public static final Supplier<ChassisVelocities> kTeleopRequestUpdater = switch (ControlBoardConstants.kInputMode) {
         case CONTROLLER -> () -> {
             return getRequestedSpeeds(
                     ControlBoard.mDriver.getLeftY(),
-                    ControlBoard.mDriver.getRightX());
+                    ControlBoard.mDriver.getLeftX());
         };
         case KEYBOARD -> () -> {
             return getRequestedSpeeds(
@@ -175,7 +180,7 @@ public class DriveConstants {
         case DEMO -> () -> {
             return getRequestedSpeeds(
                     ControlBoard.mDriver.getLeftY(),
-                    ControlBoard.mDriver.getRightX());
+                    ControlBoard.mDriver.getLeftX());
         };
 
     };

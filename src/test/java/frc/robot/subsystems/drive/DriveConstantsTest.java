@@ -23,16 +23,18 @@ class DriveConstantsTest {
         assertEquals(0, centered.omega, 1e-9);
     }
 
-    @Test void rotationIsIndependentAndRequestsRemainSpeedLimited() {
+    @Test void sidewaysInputDrivesLateralVelocityWithoutRotation() {
         var speeds = DriveConstants.getRequestedSpeeds(0, 1);
         assertEquals(0, speeds.vx, 1e-9);
-        assertEquals(0, speeds.vy, 1e-9);
-        assertEquals(-DriveConstants.kMaxOmega.baseUnitMagnitude() * ControlBoardConstants.kDriveSpeedScale,
-                speeds.omega, 1e-9);
-        var clamped = DriveConstants.getRequestedSpeeds(-2, 2);
         assertEquals(DriveConstants.kMaxVelocity.baseUnitMagnitude() * ControlBoardConstants.kDriveSpeedScale,
-                clamped.vx, 1e-9);
-        assertEquals(speeds.omega, clamped.omega, 1e-9);
+                speeds.vy, 1e-9);
+        assertEquals(0, speeds.omega, 1e-9);
+
+        var reverse = DriveConstants.getRequestedSpeeds(0, -1);
+        assertEquals(0, reverse.vx, 1e-9);
+        assertEquals(-DriveConstants.kMaxVelocity.baseUnitMagnitude() * ControlBoardConstants.kDriveSpeedScale,
+                reverse.vy, 1e-9);
+        assertEquals(0, reverse.omega, 1e-9);
     }
 
     @Test void frontLeftMatchesMeasuredForwardAndLeftDistances() {

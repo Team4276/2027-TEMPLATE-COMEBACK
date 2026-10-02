@@ -79,23 +79,24 @@ class DriverControllerTest {
         assertEquals(6, deploy.getIO().voltage);
         assertEquals(12, rollers.getIO().voltage);
 
-        // Releasing LT must stop intake even when right-stick X remains displaced.
-        controllerSim.setRightX(1);
+        // Releasing LT must stop intake even when the strafe axis on the left stick remains displaced.
+        controllerSim.setLeftX(1);
         controllerSim.setLeftTrigger(0);
         tick();
         tick();
         assertEquals(0, deploy.getIO().voltage);
         assertEquals(0, rollers.getIO().voltage);
-        assertTrue(DriveConstants.kTeleopRequestUpdater.get().omega < 0);
+        assertTrue(DriveConstants.kTeleopRequestUpdater.get().vy > 0);
+        assertEquals(0, DriveConstants.kTeleopRequestUpdater.get().omega, 1e-9);
     }
 
     @Test void unusedStickAxesAndRightTriggerCannotMoveTheRobotOrDeployIntake() {
-        controllerSim.setLeftX(1);
+        controllerSim.setRightX(1);
         controllerSim.setRightY(1);
         controllerSim.setRightTrigger(1);
-        // Noise on the used axes remains inside their own deadbands.
+        // Noise on the used left stick axes remains inside their own deadbands.
         controllerSim.setLeftY(0.04);
-        controllerSim.setRightX(0.04);
+        controllerSim.setLeftX(0.04);
         tick();
         var speeds = DriveConstants.kTeleopRequestUpdater.get();
         assertEquals(0, speeds.vx, 1e-9);
