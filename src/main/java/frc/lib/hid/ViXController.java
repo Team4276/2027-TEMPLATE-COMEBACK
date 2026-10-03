@@ -1,10 +1,9 @@
 package frc.lib.hid;
 
-import org.wpilib.command2.button.CommandNiDsXboxController;
+import org.wpilib.command2.button.CommandXboxController;
 
-public class ViXController extends CommandNiDsXboxController implements JoystickOutputController {
+public class ViXController extends CommandXboxController implements JoystickOutputController {
     private double JOYSTICK_DEADBAND = 0.1;
-    private double TRIGGER_DEADBAND = 0.25;
 
     public ViXController(int port) {
         super(port);
@@ -41,14 +40,6 @@ public class ViXController extends CommandNiDsXboxController implements Joystick
     @Override
     public JoystickOutput getLeft() {
         return new JoystickOutput(getLeftX(), getLeftY());
-    }
-
-    public boolean getLT() {
-        return getLeftTriggerAxis() > TRIGGER_DEADBAND;
-    }
-
-    public boolean getRT() {
-        return getRightTriggerAxis() > TRIGGER_DEADBAND;
     }
 
     // public Command rumbleCommand(RumbleType type, double value, double duration) {

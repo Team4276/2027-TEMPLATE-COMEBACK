@@ -8,7 +8,7 @@ import org.wpilib.command2.Command;
 import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 import org.wpilib.command2.button.CommandGenericHID;
-import org.wpilib.command2.button.CommandNiDsXboxController;
+import org.wpilib.command2.button.CommandXboxController;
 import frc.lib.hid.ViXController;
 import frc.robot.Robot;
 import frc.robot.RobotConstants;
@@ -29,13 +29,13 @@ public class ControlBoard extends SubsystemBase {
 	public void configureBindings() {
 		Drive.mInstance.setDefaultCommand(Drive.mInstance.drive(DriveConstants.kTeleopRequestUpdater));
 
-		mDriver.back()
+		mDriver.menu()
 				.onTrue(Commands.runOnce(
 						() -> Drive.mInstance.zeroGyro(),
 						Drive.mInstance)
 						.ignoringDisable(true));
 
-		mDriver.start()
+		mDriver.view()
 				.onTrue(Commands.runOnce(() -> Robot.resetPoseForAuto = true).ignoringDisable(true));
 
 		driverControls();
@@ -96,7 +96,7 @@ public class ControlBoard extends SubsystemBase {
 		return rumbleCommand(mDriver, duration);
 	}
 
-	public Command rumbleCommand(CommandNiDsXboxController controller, Time duration) {
+	public Command rumbleCommand(CommandXboxController controller, Time duration) {
 		return Commands.sequence(
 				Commands.runOnce(() -> {
 					setRumble(controller, true);
@@ -116,7 +116,7 @@ public class ControlBoard extends SubsystemBase {
 		setRumble(mDriver, on);
 	}
 
-	public void setRumble(CommandNiDsXboxController controller, boolean on) {
+	public void setRumble(CommandXboxController controller, boolean on) {
 		controller.getHID().setRumble(RumbleType.RIGHT_RUMBLE, on ? 1.0 : 0.0);
 		controller.getHID().setRumble(RumbleType.LEFT_RUMBLE, on ? 1.0 : 0.0);
 	}
