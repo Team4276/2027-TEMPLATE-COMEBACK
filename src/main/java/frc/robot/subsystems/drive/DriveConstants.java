@@ -173,7 +173,7 @@ public class DriveConstants {
             return getRequestedSpeeds(
                     ControlBoard.mDriver.getLeftWithDeadband().y,
                     ControlBoard.mDriver.getLeftWithDeadband().x,
-                    ControlBoard.mDriver.getRightWithDeadband().x);
+                    -ControlBoard.mDriver.getRightWithDeadband().x);
         };
         case KEYBOARD -> () -> {
             return getRequestedSpeeds(
