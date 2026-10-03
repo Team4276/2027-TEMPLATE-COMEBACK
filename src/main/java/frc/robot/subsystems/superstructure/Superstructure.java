@@ -17,35 +17,12 @@ public class Superstructure extends SubsystemBase {
     public void periodic() {
     }
 
-    public Command idleIntake() {
-        return setIntake(IntakeDeploy.IDLE, IntakeRollers.IDLE)
-                .withName("Idle Intake");
+    public Command setIntakeDeploy(Setpoint setpoint) {
+        return IntakeDeploy.mInstance.setpointCommand(setpoint);
     }
 
-    public Command deployIntake() {
-        return setIntake(IntakeDeploy.DEPLOY, IntakeRollers.IDLE)
-                .withName("Idle Intake");
-    }
-
-    public Command runIntake() {
-        return setIntake(IntakeDeploy.IDLE, IntakeRollers.INTAKE)
-                .withName("Idle Intake");
-    }
-
-    public Command exhaustIntake() {
-        return setIntake(IntakeDeploy.IDLE, IntakeRollers.EXHAUST)
-                .withName("Idle Intake");
-    }
-
-    public Command retractIntake() {
-        return setIntake(IntakeDeploy.STOW, IntakeRollers.IDLE)
-                .withName("Idle Intake");
-    }
-
-    private Command setIntake(Setpoint deploy, Setpoint rollers) {
-        return IntakeDeploy.mInstance.setpointCommand(deploy)
-                .alongWith(IntakeRollers.mInstance.setpointCommand(rollers))
-                .withName("Idle Intake");
+    public Command setIntakeRollers(Setpoint setpoint) {
+        return IntakeRollers.mInstance.setpointCommand(setpoint);
     }
 
     public Command shootHub() {

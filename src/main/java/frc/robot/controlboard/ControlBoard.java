@@ -14,6 +14,8 @@ import frc.robot.Robot;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.intake.IntakeDeploy;
+import frc.robot.subsystems.intake.IntakeRollers;
 import frc.robot.subsystems.superstructure.Superstructure;
 
 public class ControlBoard extends SubsystemBase {
@@ -66,20 +68,20 @@ public class ControlBoard extends SubsystemBase {
 
 		// Intake Controls
 		mDriver.leftTrigger()
-				.onTrue(Superstructure.mInstance.runIntake());
+				.onTrue(Superstructure.mInstance.setIntakeRollers(IntakeRollers.INTAKE));
 		mDriver.leftBumper()
-				.onTrue(Superstructure.mInstance.exhaustIntake());
-
-		mDriver.b()
-				.onTrue(Superstructure.mInstance.retractIntake());
-		mDriver.getHID().povUp()
-				.onTrue(Superstructure.mInstance.deployIntake());
-
+				.onTrue(Superstructure.mInstance.setIntakeRollers(IntakeRollers.EXHAUST));
 		mDriver.leftTrigger().negate()
 				.and(mDriver.leftBumper().negate())
-				.and(mDriver.b().negate())
-				.and(mDriver.getHID().povUp().negate())
-				.onTrue(Superstructure.mInstance.idleIntake());
+				.onTrue(Superstructure.mInstance.setIntakeRollers(IntakeRollers.IDLE));
+
+		mDriver.b()
+				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.STOW));
+		mDriver.getHID().povUp()
+				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.DEPLOY));
+		mDriver.b().negate()
+				.and(mDriver.getHID().povUp())
+				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.IDLE));
 	}
 
 	public void bringupControls() {
