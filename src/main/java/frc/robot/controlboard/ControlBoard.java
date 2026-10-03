@@ -51,36 +51,35 @@ public class ControlBoard extends SubsystemBase {
 	public void driverControls() {
 		// Shooter/Feeder Controls
 		mDriver.a()
-				.whileTrue(Superstructure.mInstance.shootHub());
+				.onTrue(Superstructure.mInstance.shootHub());
 		mDriver.y()
-				.whileTrue(Superstructure.mInstance.shootHubFar());
+				.onTrue(Superstructure.mInstance.shootHubFar());
 		mDriver.x()
-				.whileTrue(Superstructure.mInstance.ferry());
+				.onTrue(Superstructure.mInstance.ferry());
 
 		mDriver.rightTrigger()
-				.whileTrue(Superstructure.mInstance.feed());
+				.onTrue(Superstructure.mInstance.feed());
 
 		mDriver.rightBumper()
-				.whileTrue(Superstructure.mInstance.idleFlywheels()
+				.onTrue(Superstructure.mInstance.idleFlywheels()
 						.alongWith(Superstructure.mInstance.idleFeeders()));
 
 		// Intake Controls
 		mDriver.leftTrigger()
-				.whileTrue(Superstructure.mInstance.runIntake());
+				.onTrue(Superstructure.mInstance.runIntake());
 		mDriver.leftBumper()
-				.whileTrue(Superstructure.mInstance.exhaustIntake());
+				.onTrue(Superstructure.mInstance.exhaustIntake());
 
 		mDriver.b()
-				.whileTrue(Superstructure.mInstance.retractIntake());
+				.onTrue(Superstructure.mInstance.retractIntake());
 		mDriver.getHID().povUp()
-				.whileTrue(Superstructure.mInstance.deployIntake());
+				.onTrue(Superstructure.mInstance.deployIntake());
 
 		mDriver.leftTrigger().negate()
 				.and(mDriver.leftBumper().negate())
 				.and(mDriver.b().negate())
 				.and(mDriver.getHID().povUp().negate())
-				.whileTrue(Superstructure.mInstance.idleIntake());
-
+				.onTrue(Superstructure.mInstance.idleIntake());
 	}
 
 	public void bringupControls() {
