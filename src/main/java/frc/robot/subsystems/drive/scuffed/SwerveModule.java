@@ -2,13 +2,18 @@ package frc.robot.subsystems.drive.scuffed;
 
 import static org.wpilib.units.Units.Radians;
 import static org.wpilib.units.Units.RadiansPerSecond;
+import static org.wpilib.units.Units.Rotations;
 import static org.wpilib.units.Units.RotationsPerSecond;
+
+import org.littletonrobotics.junction.Logger;
+
 import static org.wpilib.units.Units.Meters;
 import static org.wpilib.units.Units.MetersPerSecond;
 
 import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.math.kinematics.SwerveModulePosition;
 import org.wpilib.math.kinematics.SwerveModuleVelocity;
+import org.wpilib.math.util.MathUtil;
 import org.wpilib.units.measure.Angle;
 
 
@@ -32,13 +37,16 @@ public class SwerveModule {
     public final MotorIO mTurnSpark;
     public final Angle mTurnOffset;
     private final double wheelRadiusMeters;
+    private int id;
 
     public SwerveModule(MotorIOTalonFXConfig driveConfig, MotorIOSparkMaxConfig turnConfig, Angle turnOffset) {
+        id = driveConfig.mainID;
         this(new MotorIOTalonFX(driveConfig), new MotorIOSparkMax(turnConfig),
                 turnOffset, DriveConstants.wheelRadiusMeters);
     }
 
     SwerveModule(MotorIO drive, MotorIO turn, Angle turnOffset, double wheelRadiusMeters) {
+        id = -1;
         mDriveFx = drive;
         mTurnSpark = turn;
         mTurnOffset = turnOffset;
@@ -51,9 +59,15 @@ public class SwerveModule {
     }
 
     public void setVelocity(SwerveModuleVelocity velocity) {
+        velocity = velocity.optimize(getPosition().angle);
         mDriveFx.applySetpoint(Setpoint.withVelocitySetpoint(
                 RotationsPerSecond.of(velocity.velocity / (2 * Math.PI * wheelRadiusMeters)), 0));
-        mTurnSpark.applySetpoint(Setpoint.withPositionSetpoint(velocity.angle.getMeasure().plus(mTurnOffset), 0));
+
+        var turnPosition = new Rotation2d(velocity.angle.getMeasure().plus(mTurnOffset)).getMeasure();
+
+        turnPosition = Rotations.of(MathUtil.inputModulus(velocity.angle.getMeasure().plus(mTurnOffset).in(Rotations), 0.0, 1.0));
+        Logger.recordOutput("Turn " + id, turnPosition.in(Rotations));
+        mTurnSpark.applySetpoint(Setpoint.withPositionSetpoint(turnPosition, 0));
     }
 
     public SwerveModulePosition getPosition() {

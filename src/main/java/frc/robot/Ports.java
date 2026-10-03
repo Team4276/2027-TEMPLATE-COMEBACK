@@ -7,26 +7,26 @@ import com.ctre.phoenix6.CANBus;
 public enum Ports {
     /* Drive */
     FRONT_LEFT_DRIVE(1, CANPort.CAN_S1),
-    FRONT_LEFT_TURN(2, CANPort.CAN_S1),
+    FRONT_LEFT_TURN(2, CANPort.CAN_S2),
     FRONT_RIGHT_DRIVE(3, CANPort.CAN_S1),
-    FRONT_RIGHT_TURN(4, CANPort.CAN_S1),
+    FRONT_RIGHT_TURN(4, CANPort.CAN_S2),
     BACK_LEFT_DRIVE(5, CANPort.CAN_S1),
-    BACK_LEFT_TURN(6, CANPort.CAN_S1),
+    BACK_LEFT_TURN(6, CANPort.CAN_S2),
     BACK_RIGHT_DRIVE(7, CANPort.CAN_S1),
-    BACK_RIGHT_TURN(8, CANPort.CAN_S1),
+    BACK_RIGHT_TURN(8, CANPort.CAN_S2),
     PIGEON(9, CANPort.CAN_S1),
 
     /* Intake */
     INTAKE_DEPLOY(10, CANPort.CAN_S2),
-    INTAKE_ROLLERS(11, CANPort.CAN_S2),
+    INTAKE_ROLLERS(11, CANPort.CAN_S3),
 
     /* Feeder */
-    FEEDER(12, CANPort.CAN_S3),
-    HOPPER(13, CANPort.CAN_S3),
+    FEEDER(12, CANPort.CAN_S0),
+    HOPPER(13, CANPort.CAN_S0),
 
     /* Shooter */
-    FLYWHEEL_LEFT(14, CANPort.CAN_S3),
-    FLYWHEEL_RIGHT(15, CANPort.CAN_S3),
+    FLYWHEEL_LEFT(14, CANPort.CAN_S4),
+    FLYWHEEL_RIGHT(15, CANPort.CAN_S4),
 
     ;
 

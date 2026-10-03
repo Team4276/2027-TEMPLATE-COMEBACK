@@ -40,15 +40,15 @@ public class DriveConstants {
     public static final Translation2d[] kModuleTranslations = new Translation2d[] {
             new Translation2d(trackWidth / 2.0, wheelBase / 2.0),
             new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
-            new Translation2d(-trackWidth / 2.0, wheelBase / 2.0),
-            new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
+            new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0),
+            new Translation2d(-trackWidth / 2.0, wheelBase / 2.0)
     };
     
     public static final Angle[] turnOffsets = {
-            Degrees.of(101.8), // FL
-            Degrees.of(175.2), // FR
-            Degrees.of(8.1), // BL
-            Degrees.of(148.6) // BR
+            Degrees.of(270.0), // FL
+            Degrees.of(0.0), // FR
+            Degrees.of(90.0), // BL
+            Degrees.of(180.0) // BR
     };
     
     public static final double wheelRadiusMeters = Units.inchesToMeters(1.47);

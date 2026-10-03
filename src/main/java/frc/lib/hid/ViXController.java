@@ -41,21 +41,5 @@ public class ViXController extends CommandXboxController implements JoystickOutp
     public JoystickOutput getLeft() {
         return new JoystickOutput(getLeftX(), getLeftY());
     }
-
-    // public Command rumbleCommand(RumbleType type, double value, double duration) {
-    //     return rumbleCommand(type, value, duration, 1);
-    // }
-
-    // public Command rumbleCommand(RumbleType type, double value, double duration, int times) {
-    //     var command = new SequentialCommandGroup();
-
-    //     // for (int i = 0; i < times; i++) {
-    //     //     command.addCommands(
-    //     //             Commands.startEnd(() -> setR(type, value), () -> setRumble(type, 0.0))
-    //     //                     .withTimeout(duration)
-    //     //                     .andThen(Commands.waitSeconds(0.1)));
-    //     // }
-
-    //     return command;
-    // }
+    
 }
