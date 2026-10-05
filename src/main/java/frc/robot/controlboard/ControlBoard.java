@@ -77,7 +77,7 @@ public class ControlBoard extends SubsystemBase {
 
 		mDriver.b()
 				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.STOW));
-		mDriver.getHID().povUp()
+		mDriver.dpadUp()
 				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.DEPLOY));
 		mDriver.b().negate()
 				.and(mDriver.getHID().povUp())

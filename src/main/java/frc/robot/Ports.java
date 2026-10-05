@@ -27,7 +27,8 @@ public enum Ports {
     /* Shooter */
     FLYWHEEL_LEFT(14, CANPort.CAN_S4),
     FLYWHEEL_RIGHT(15, CANPort.CAN_S4),
-
+    // Conveyor
+    CONVEYOR(16, CANPort.CAN_S3),
     ;
 
     public final int id;
