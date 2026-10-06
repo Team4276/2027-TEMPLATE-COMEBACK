@@ -76,12 +76,12 @@ public class ControlBoard extends SubsystemBase {
 				.onTrue(Superstructure.mInstance.setIntakeRollers(IntakeRollers.IDLE));
 
 		mDriver.b()
-				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.STOW));
+				.whileTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.STOW));
 		mDriver.dpadUp()
-				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.DEPLOY));
+				.whileTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.DEPLOY));
 		mDriver.b().negate()
-				.and(mDriver.getHID().povUp())
-				.onTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.IDLE));
+				.and(mDriver.dpadUp())
+				.whileTrue(Superstructure.mInstance.setIntakeDeploy(IntakeDeploy.IDLE));
 	}
 
 	public void bringupControls() {
