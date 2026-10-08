@@ -2,6 +2,7 @@ package frc.robot.subsystems.flywheels;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -14,6 +15,7 @@ import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIOTalonFX;
 import frc.lib.io.MotorIOTalonFXSim;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
+import frc.lib.io.MotorIOTalonFX.ControlRequestGetter;
 import frc.lib.sim.RollerSim;
 import frc.lib.sim.RollerSim.RollerSimConstants;
 import frc.robot.Ports;
@@ -47,7 +49,10 @@ public class FlywheelConstants {
         config.Voltage.PeakForwardVoltage = 12.0;
         config.Voltage.PeakReverseVoltage = -12.0;
 
-        config.Slot0.kP = 0.0001;
+        // Voltage output is in volts and velocity error is in rotations per second.
+        // These gains provide a starting point; verify and tune them on the robot.
+        config.Slot0.kP = 0.1;
+        config.Slot0.kV = 0.12;
 
         config.Feedback.SensorToMechanismRatio = kGearing;
 
@@ -68,6 +73,14 @@ public class FlywheelConstants {
         config.followerConfig = getFXConfig();
         config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
         config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Aligned };
+        // A flywheel needs a velocity loop, not a Motion Magic profile with no
+        // acceleration configured.
+        config.requestGetter = new ControlRequestGetter() {
+            @Override
+            public VelocityVoltage getVelocityRequest(AngularVelocity velocity, int slot) {
+                return new VelocityVoltage(velocity).withSlot(slot).withEnableFOC(true);
+            }
+        };
         return config;
     }
 
