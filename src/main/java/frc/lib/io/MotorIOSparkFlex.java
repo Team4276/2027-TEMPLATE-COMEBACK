@@ -39,7 +39,7 @@ public class MotorIOSparkFlex extends MotorIO {
 	private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
-	private volatile boolean configFailed = false;
+	private boolean configFailed = false;
 	private double positionFactor = 1.0;
 	private double velocityFactor = 1.0;
 
@@ -49,18 +49,19 @@ public class MotorIOSparkFlex extends MotorIO {
 				REVLibError result = spark.configure(config, ResetMode.kResetSafeParameters,
 						PersistMode.kPersistParameters);
 				if (result == REVLibError.kOk) {
-					return;
+					break;
+				} else {
+					configFailed = true;
 				}
 			}
-			configFailed = true;
 		});
 	}
 
 	@Override
 	public void updateInputs() {
 		inputs.enabled = getEnabled();
-		inputs.setPointType = getSetpoint().mode;
-		inputs.setPointValueAsDouble = getSetpointDoubleInUnits();
+		inputs.setPointType = Mode.IDLE;
+		inputs.setPointValueAsDouble = 0.0;
 
 		inputs.position[0] = Rotations.of(main.getEncoder().getPosition().get() * positionFactor).baseUnitMagnitude();
 		inputs.velocity[0] = RPM.of(main.getEncoder().getVelocity().get() * velocityFactor).baseUnitMagnitude();
@@ -108,7 +109,7 @@ public class MotorIOSparkFlex extends MotorIO {
 
 		// inputs.pidVoltage = Units.Volts.of(0.0);
 
-		inputs.configFailed = configFailed;
+		inputs.configFailed = false;
 	}
 
 	@Override

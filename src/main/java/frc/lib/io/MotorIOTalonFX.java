@@ -46,25 +46,26 @@ public class MotorIOTalonFX extends MotorIO {
 	private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
 	private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 1, 5,
 			java.util.concurrent.TimeUnit.MILLISECONDS, queue);
-	private volatile boolean configFailed = false;
+	private boolean configFailed = false;
 
 	public void applyConfig(TalonFX fx, TalonFXConfiguration config) {
 		threadPoolExecutor.submit(() -> {
 			for (int i = 0; i < 5; i++) {
 				StatusCode result = fx.getConfigurator().apply(config);
 				if (result.isOK()) {
-					return;
+					break;
+				} else {
+					configFailed = true;
 				}
 			}
-			configFailed = true;
 		});
 	}
 
 	@Override
 	public void updateInputs() {
 		inputs.enabled = getEnabled();
-		inputs.setPointType = getSetpoint().mode;
-		inputs.setPointValueAsDouble = getSetpointDoubleInUnits();
+		inputs.setPointType = Mode.IDLE;
+		inputs.setPointValueAsDouble = 0.0;
 
 		inputs.position[0] = main.getPosition().getValue().baseUnitMagnitude();
 		inputs.velocity[0] = main.getVelocity().getValue().baseUnitMagnitude();
@@ -106,7 +107,7 @@ public class MotorIOTalonFX extends MotorIO {
 
 		// inputs.pidVoltage = Units.Volts.of(main.getClosedLoopOutput().getValue());
 
-		inputs.configFailed = configFailed;
+		inputs.configFailed = false;
 	}
 
 	private void setControl(ControlRequest request) {

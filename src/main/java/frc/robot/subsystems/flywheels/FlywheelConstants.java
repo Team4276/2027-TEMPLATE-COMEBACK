@@ -49,8 +49,7 @@ public class FlywheelConstants {
         config.Voltage.PeakForwardVoltage = 12.0;
         config.Voltage.PeakReverseVoltage = -12.0;
 
-        // Voltage output is in volts and velocity error is in rotations per second.
-        // These gains provide a starting point; verify and tune them on the robot.
+        // VelocityVoltage gains use volts and rotations per second.
         config.Slot0.kP = 0.1;
         config.Slot0.kV = 0.12;
 
@@ -74,8 +73,7 @@ public class FlywheelConstants {
         config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
         // The two flywheels face each other, so the left motor must oppose the right.
         config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Opposed };
-        // A flywheel needs a velocity loop, not a Motion Magic profile with no
-        // acceleration configured.
+        // Use direct velocity control because this flywheel has no Motion Magic acceleration configured.
         config.requestGetter = new ControlRequestGetter() {
             @Override
             public VelocityVoltage getVelocityRequest(AngularVelocity velocity, int slot) {

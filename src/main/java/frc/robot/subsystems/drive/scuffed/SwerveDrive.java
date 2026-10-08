@@ -38,7 +38,6 @@ public class SwerveDrive {
     }
 
     private static Supplier<Angle> createGyroSupplier() {
-        // Keep the Pigeon object alive through the captured supplier for the drivetrain lifetime.
         Pigeon2 gyro = new Pigeon2(Ports.PIGEON.id, Ports.PIGEON.bus);
         return () -> gyro.getYaw(true).getValue();
     }
@@ -58,7 +57,6 @@ public class SwerveDrive {
     }
 
     public void updateTelemetry() {
-        // Odometry must consume positions from the same sensor refresh as the published module data.
         updateModuleInputs();
         odometry.update(new Rotation2d(getGyroAngle()), getModulePositions());
     }
@@ -76,7 +74,6 @@ public class SwerveDrive {
     }
 
     public ChassisVelocities getFieldRelativeVelocity() {
-        // Kinematics reports robot-frame velocity; rotate it by the odometry heading for logs/users.
         return getRobotRelativeVelocity().toFieldRelative(getPose().getRotation());
     }
 
