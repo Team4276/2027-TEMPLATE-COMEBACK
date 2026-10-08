@@ -72,7 +72,8 @@ public class FlywheelConstants {
         config.followerIDs = new int[]{Ports.FLYWHEEL_LEFT.id};
         config.followerConfig = getFXConfig();
         config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
-        config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Aligned };
+        // The two flywheels face each other, so the left motor must oppose the right.
+        config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Opposed };
         // A flywheel needs a velocity loop, not a Motion Magic profile with no
         // acceleration configured.
         config.requestGetter = new ControlRequestGetter() {
