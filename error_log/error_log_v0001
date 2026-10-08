@@ -1,0 +1,70 @@
+Executing task: gradlew deploy  -PteamNumber=4276 --offline  -Dorg.gradle.java.home="C:\Users\Public\wpilib\2027_alpha7\jdk" 
+
+FIRST Driver Station reported IP: 10.42.76.200
+
+> Task :discoversystemcore
+Discovering Target systemcore
+Using systemcore@10.42.76.200:22 for target systemcore
+Target discovery succeeded in 142 ms
+
+> Task :deployprogramKillsystemcoresystemcore
+    -C-> sudo systemctl stop robot 2> /dev/null @ /home/systemcore
+  Artifact deployed in 84 ms
+
+> Task :deploywpilibStaticFileDeploysystemcore FAILED
+    -C-> mkdir -p swerve/base swerve/base/modules swerve @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\physicalproperties.json -> swerve/base/modules/physicalproperties.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\pidfproperties_sim.json -> swerve/base/modules/pidfproperties_sim.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\backright.json -> swerve/base/modules/backright.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\frontleft.json -> swerve/base/modules/frontleft.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\frontright.json -> swerve/base/modules/frontright.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\swervedrive.json -> swerve/base/swervedrive.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\backleft.json -> swerve/base/modules/backleft.json @ /home/systemcore/deploy
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\src\main\deploy\swerve\base\modules\pidfproperties.json -> swerve/base/modules/pidfproperties.json @ /home/systemcore/deploy
+
+> Task :deploywpilibJavasystemcore FAILED
+    -C-> mkdir -p  @ /home/systemcore/wpilib/classpath
+      -[1]
+    -F-> C:\Users\Programmer\Documents\2027-TEMPLATE-COMEBACK\build\libs\2027-TEMPLATE-COMEBACK.jar -> 2027-TEMPLATE-COMEBACK.jar @ /home/systemcore/wpilib/classpath
+
+> Task :deploynativeZipswpilibJavasystemcore
+    40 file(s) are up-to-date and were not deployed
+    -C-> sudo ldconfig /home/systemcore/wpilib/third-party/lib @ /home/systemcore/wpilib/third-party/lib
+      -[1]
+  Artifact deployed in 633 ms
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':deploywpilibStaticFileDeploysystemcore'.
+> A failure occurred while executing org.wpilib.deployutils.deploy.artifact.ArtifactDeployWorker
+   > SFTP error (SSH_FX_FAILURE): Failure
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':deploywpilibJavasystemcore'.
+> A failure occurred while executing org.wpilib.deployutils.deploy.artifact.ArtifactDeployWorker
+   > SFTP error (SSH_FX_FAILURE): Failure
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 4s
+8 actionable tasks: 8 executed
+
+ *  The terminal process "cmd.exe /d /c gradlew deploy  -PteamNumber=4276 --offline  -Dorg.gradle.java.home="C:\Users\Public\wpilib\2027_alpha7\jdk"" terminated with exit code: 1. 
+ *  Terminal will be reused by tasks, press any key to close it. 
