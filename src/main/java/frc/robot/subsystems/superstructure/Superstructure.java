@@ -27,11 +27,13 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command shootHub() {
+        // Selecting a shot only spins the flywheel; the right trigger starts feeding.
         return Flywheel.mInstance.setpointCommand(Flywheel.SHUB)
                 .withName("Shoot Hub");
     }
 
     public Command shootHubFar() {
+        // Keep the same spin-up/feed separation for the far shot preset.
         return Flywheel.mInstance.setpointCommand(Flywheel.SHOWER)
                 .withName("Shoot Hub Far");
     }
@@ -42,6 +44,8 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command feed() {
+        // Motor setpoints persist, so send IDLE when the held command ends.
+        // Requiring both subsystems keeps other feeder/hopper commands from overlapping.
         return Commands.startEnd(
                 () -> {
                     Feeder.mInstance.applySetpoint(Feeder.FEED);

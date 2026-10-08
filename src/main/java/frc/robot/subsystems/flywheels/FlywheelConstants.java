@@ -49,7 +49,8 @@ public class FlywheelConstants {
         config.Voltage.PeakForwardVoltage = 12.0;
         config.Voltage.PeakReverseVoltage = -12.0;
 
-        // VelocityVoltage gains use volts and rotations per second.
+        // kV supplies voltage at the requested speed; kP corrects velocity error.
+        // The old P-only gain was too small to spin up the flywheels.
         config.Slot0.kP = 0.1;
         config.Slot0.kV = 0.12;
 
