@@ -59,8 +59,9 @@ public class ControlBoard extends SubsystemBase {
 		mDriver.x()
 				.onTrue(Superstructure.mInstance.ferry());
 
+		// Keep feeding only while held; releasing the trigger ends the feed command.
 		mDriver.rightTrigger()
-				.onTrue(Superstructure.mInstance.feed());
+				.whileTrue(Superstructure.mInstance.feed());
 
 		mDriver.rightBumper()
 				.onTrue(Superstructure.mInstance.idleFlywheels()

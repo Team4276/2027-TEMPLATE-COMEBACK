@@ -2,6 +2,7 @@ package frc.robot.subsystems.flywheels;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -14,6 +15,7 @@ import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIOTalonFX;
 import frc.lib.io.MotorIOTalonFXSim;
 import frc.lib.io.MotorIOTalonFX.MotorIOTalonFXConfig;
+import frc.lib.io.MotorIOTalonFX.ControlRequestGetter;
 import frc.lib.sim.RollerSim;
 import frc.lib.sim.RollerSim.RollerSimConstants;
 import frc.robot.Ports;
@@ -47,7 +49,10 @@ public class FlywheelConstants {
         config.Voltage.PeakForwardVoltage = 12.0;
         config.Voltage.PeakReverseVoltage = -12.0;
 
-        config.Slot0.kP = 0.0001;
+        // kV supplies voltage at the requested speed; kP corrects velocity error.
+        // The old P-only gain was too small to spin up the flywheels.
+        config.Slot0.kP = 0.1;
+        config.Slot0.kV = 0.12;
 
         config.Feedback.SensorToMechanismRatio = kGearing;
 
@@ -67,7 +72,15 @@ public class FlywheelConstants {
         config.followerIDs = new int[]{Ports.FLYWHEEL_LEFT.id};
         config.followerConfig = getFXConfig();
         config.followerBuses = new CANBus[]{Ports.FLYWHEEL_LEFT.bus};
-        config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Aligned };
+        // The two flywheels face each other, so the left motor must oppose the right.
+        config.followerAlignment = new MotorAlignmentValue[]{ MotorAlignmentValue.Opposed };
+        // Use direct velocity control because this flywheel has no Motion Magic acceleration configured.
+        config.requestGetter = new ControlRequestGetter() {
+            @Override
+            public VelocityVoltage getVelocityRequest(AngularVelocity velocity, int slot) {
+                return new VelocityVoltage(velocity).withSlot(slot).withEnableFOC(true);
+            }
+        };
         return config;
     }
 
