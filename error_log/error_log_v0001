@@ -68,3 +68,13 @@ BUILD FAILED in 4s
 
  *  The terminal process "cmd.exe /d /c gradlew deploy  -PteamNumber=4276 --offline  -Dorg.gradle.java.home="C:\Users\Public\wpilib\2027_alpha7\jdk"" terminated with exit code: 1. 
  *  Terminal will be reused by tasks, press any key to close it. 
+
+
+==================
+how to fix: need to clear the logs
+
+ssh systemcore@10.42.76.200
+pass: systemcore
+df -h /home
+rm *.revlog
+rm -rf logs
