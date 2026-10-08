@@ -4,6 +4,7 @@ import frc.lib.bases.MotorSubsystem;
 import frc.lib.io.MotorIO;
 import frc.lib.io.MotorIO.Setpoint;
 
+/** Feeder voltage presets used by the superstructure's firing and stop commands. */
 public class Feeder extends MotorSubsystem<MotorIO> {
     public static final Setpoint IDLE = Setpoint.withVoltageSetpoint(FeederConstants.kIdleVoltage);
     public static final Setpoint SPINUP = Setpoint.withVoltageSetpoint(FeederConstants.kSpinupVoltage);

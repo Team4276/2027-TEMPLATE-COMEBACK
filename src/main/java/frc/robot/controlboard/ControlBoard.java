@@ -60,7 +60,7 @@ public class ControlBoard extends SubsystemBase {
 				.onTrue(Superstructure.mInstance.ferry());
 
 		mDriver.rightTrigger()
-				.onTrue(Superstructure.mInstance.feed());
+				.whileTrue(Superstructure.mInstance.feed());
 
 		mDriver.rightBumper()
 				.onTrue(Superstructure.mInstance.idleFlywheels()

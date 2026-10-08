@@ -1,6 +1,7 @@
 package frc.robot.subsystems.superstructure;
 
 import org.wpilib.command2.Command;
+import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 import frc.lib.io.MotorIO.Setpoint;
@@ -27,17 +28,11 @@ public class Superstructure extends SubsystemBase {
 
     public Command shootHub() {
         return Flywheel.mInstance.setpointCommand(Flywheel.SHUB)
-                .alongWith(Feeder.mInstance.setpointCommand(Feeder.SPINUP)
-                        .alongWith(Hopper.mInstance.setpointCommand(Hopper.EXHAUST)))
-                .unless(() -> Feeder.mInstance.getSetpoint() == Feeder.FEED)
                 .withName("Shoot Hub");
     }
 
     public Command shootHubFar() {
         return Flywheel.mInstance.setpointCommand(Flywheel.SHOWER)
-                .alongWith(Feeder.mInstance.setpointCommand(Feeder.SPINUP)
-                        .alongWith(Hopper.mInstance.setpointCommand(Hopper.EXHAUST)))
-                .unless(() -> Feeder.mInstance.getSetpoint() == Feeder.FEED)
                 .withName("Shoot Hub Far");
     }
 
@@ -47,8 +42,17 @@ public class Superstructure extends SubsystemBase {
     }
 
     public Command feed() {
-        return Feeder.mInstance.setpointCommand(Feeder.FEED)
-                .alongWith(Hopper.mInstance.setpointCommand(Hopper.FEED))
+        return Commands.startEnd(
+                () -> {
+                    Feeder.mInstance.applySetpoint(Feeder.FEED);
+                    Hopper.mInstance.applySetpoint(Hopper.FEED);
+                },
+                () -> {
+                    Feeder.mInstance.applySetpoint(Feeder.IDLE);
+                    Hopper.mInstance.applySetpoint(Hopper.IDLE);
+                },
+                Feeder.mInstance,
+                Hopper.mInstance)
                 .withName("Feed");
     }
 

@@ -71,12 +71,14 @@ public class SwerveModule {
     }
 
     public SwerveModulePosition getPosition() {
+        // MotorIO reports wheel radians after the Talon's mechanism ratio; arc length is r * theta.
         return new SwerveModulePosition(
                 Meters.of(mDriveFx.getPosition().in(Radians) * wheelRadiusMeters),
                 new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset)));
     }
 
     public SwerveModuleVelocity getVelocity() {
+        // The same r * theta conversion turns wheel rad/s into ground speed in m/s.
         return new SwerveModuleVelocity(
                 MetersPerSecond.of(mDriveFx.getVelocity().in(RadiansPerSecond) * wheelRadiusMeters),
                 new Rotation2d(mTurnSpark.getPosition().minus(mTurnOffset)));
