@@ -14,6 +14,7 @@ import frc.robot.Robot;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.intake.IntakeDeploy;
 import frc.robot.subsystems.intake.IntakeRollers;
 import frc.robot.subsystems.superstructure.Superstructure;
@@ -49,26 +50,29 @@ public class ControlBoard extends SubsystemBase {
 			DriverStationBackend.silenceJoystickConnectionAlert(true);
 		}
 	}
-
+//.and(mOperator.rightBumper().negate().or(mDriver.rightBumper().negate()))
+//Should function as an unless condition, as it requires right bumper to not be held down
 	public void driverControls() {
 		// Shooter/Feeder Controls
-		mDriver.a()
-				.onTrue(Superstructure.mInstance.shootHub());
-		mDriver.y()
-				.onTrue(Superstructure.mInstance.shootHubFar());
-		mDriver.x()
-				.onTrue(Superstructure.mInstance.ferry());
+		mOperator.a()
+				.onTrue(Superstructure.mInstance.shootHub()); //Shooter 
+		mOperator.y()
+				.onTrue(Superstructure.mInstance.shootHubFar()); //Shooter 
+		mOperator.x()
+				.onTrue(Superstructure.mInstance.ferry()); //Shooter 
 
 		// Keep feeding only while held; releasing the trigger ends the feed command.
-		mDriver.rightTrigger()
+		mOperator.rightTrigger()
 				.whileTrue(Superstructure.mInstance.feed());
-		mDriver.dpadDown()
+		mOperator.dpadDown()
 				.whileTrue(Superstructure.mInstance.exhaust());
 
 		mDriver.rightBumper()
 				.onTrue(Superstructure.mInstance.idleFlywheels()
 						.alongWith(Superstructure.mInstance.idleFeeders()));
-
+		mOperator.rightBumper()
+				.onTrue(Superstructure.mInstance.idleFlywheels()
+						.alongWith(Superstructure.mInstance.idleFeeders()));
 		// Intake Controls
 		mDriver.leftTrigger()
 				.onTrue(Superstructure.mInstance.setIntakeRollers(IntakeRollers.INTAKE));
