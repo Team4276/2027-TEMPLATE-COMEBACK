@@ -75,7 +75,7 @@ public class AllianceFlipUtil {
         // overrideFlip = SmartDashboard.getBoolean("Sim/OverrideFlip", overrideFlip);
 
         return DriverStationBackend.getAlliance().isPresent()
-                && DriverStationBackend.getAlliance().get() == Alliance.RED
+                && DriverStationBackend.getAlliance().get() == Alliance.BLUE
                 && (RobotConstants.mode == Mode.SIM ? !overrideFlip : true);
     }
 }

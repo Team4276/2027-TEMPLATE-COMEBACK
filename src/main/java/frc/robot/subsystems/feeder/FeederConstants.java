@@ -15,8 +15,8 @@ import frc.robot.RobotConstants;
 
 public class FeederConstants {
 	public static final Voltage kIdleVoltage = Units.Volts.of(0.0);
-	public static final Voltage kSpinupVoltage = Units.Volts.of(12.0);
-	public static final Voltage kFeedVoltage = Units.Volts.of(8.0);
+	public static final Voltage kSpinupVoltage = Units.Volts.of(8.0);
+	public static final Voltage kFeedVoltage = Units.Volts.of(12.0);
 	public static final Voltage kExhaustVoltage = Units.Volts.of(-12.0);
 
 	public static SparkFlexConfig getSparkConfig() {

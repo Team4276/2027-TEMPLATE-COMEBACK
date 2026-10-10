@@ -60,6 +60,22 @@ public class Superstructure extends SubsystemBase {
                 .withName("Feed");
     }
 
+
+    public Command exhaust() {
+        //This is my attempt at an exhaust feature
+        return Commands.startEnd(
+                () -> {
+                    Feeder.mInstance.applySetpoint(Feeder.EXHAUST);
+                    Hopper.mInstance.applySetpoint(Hopper.EXHAUST);
+                },
+                () -> {
+                    Feeder.mInstance.applySetpoint(Feeder.IDLE);
+                    Hopper.mInstance.applySetpoint(Hopper.IDLE);
+                },
+                Feeder.mInstance)
+            
+                .withName("Exhaust");
+    }
     public Command idleFlywheels() {
         return Flywheel.mInstance.setpointCommand(Flywheel.IDLE)
                 .withName("Idle Flywheel");
