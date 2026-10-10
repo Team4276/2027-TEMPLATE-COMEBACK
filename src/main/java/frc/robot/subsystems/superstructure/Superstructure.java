@@ -5,6 +5,7 @@ import org.wpilib.command2.Commands;
 import org.wpilib.command2.SubsystemBase;
 
 import frc.lib.io.MotorIO.Setpoint;
+import frc.robot.subsystems.conveyor.Conveyor;
 import frc.robot.subsystems.feeder.Feeder;
 import frc.robot.subsystems.flywheels.Flywheel;
 import frc.robot.subsystems.hopper.Hopper;
@@ -50,13 +51,16 @@ public class Superstructure extends SubsystemBase {
                 () -> {
                     Feeder.mInstance.applySetpoint(Feeder.FEED);
                     Hopper.mInstance.applySetpoint(Hopper.FEED);
+                    Conveyor.mInstance.applySetpoint(Conveyor.CONVEY);
                 },
                 () -> {
                     Feeder.mInstance.applySetpoint(Feeder.IDLE);
                     Hopper.mInstance.applySetpoint(Hopper.IDLE);
+                    Conveyor.mInstance.applySetpoint(Conveyor.IDLE);
                 },
                 Feeder.mInstance,
-                Hopper.mInstance)
+                Hopper.mInstance,
+                Conveyor.mInstance)
                 .withName("Feed");
     }
 
@@ -67,12 +71,16 @@ public class Superstructure extends SubsystemBase {
                 () -> {
                     Feeder.mInstance.applySetpoint(Feeder.EXHAUST);
                     Hopper.mInstance.applySetpoint(Hopper.EXHAUST);
+                    Conveyor.mInstance.applySetpoint(Conveyor.INVERSCONVEY);
                 },
                 () -> {
                     Feeder.mInstance.applySetpoint(Feeder.IDLE);
                     Hopper.mInstance.applySetpoint(Hopper.IDLE);
+                    Conveyor.mInstance.applySetpoint(Conveyor.IDLE);
                 },
-                Feeder.mInstance)
+                Feeder.mInstance,
+                Hopper.mInstance,
+                Conveyor.mInstance)
             
                 .withName("Exhaust");
     }

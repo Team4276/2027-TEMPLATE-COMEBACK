@@ -21,7 +21,7 @@ public class IntakeDeployConstants {
 
         config.idleMode(IdleMode.kBrake)
                 .smartCurrentLimit(40)
-                .voltageCompensation(9.0) //Controls the voltage for the Intake Deploy motor (controls its speed)
+                .voltageCompensation(10.5) //Controls the voltage for the Intake Deploy motor (controls its speed)
                 .inverted(true);
         config.signals
                 .appliedOutputPeriodMs(20)
