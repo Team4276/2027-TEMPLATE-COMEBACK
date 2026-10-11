@@ -9,13 +9,12 @@ import java.util.function.Supplier;
 import java.nio.file.Files;
 import org.wpilib.system.Filesystem;
 
-import org.littletonrobotics.junction.networktables.LoggedNetworkChooser;
 import org.wpilib.command2.Command;
 import frc.robot.auto.autos.ExampleAuto;
+import frc.robot.auto.autos.MobilityAuto;
 
 public class AutoSelector {
-    private AutoChooser mAutoChooser = new AutoChooser();
-    private LoggedNetworkChooser<Supplier<AutoRoutine>> mNetworkChooser = new LoggedNetworkChooser<Supplier<AutoRoutine>>("AutoChooserAkit");
+    private final AutoChooser mAutoChooser = new AutoChooser("Do Nothing");
 
     private Pose2d startPose = new Pose2d();
 
@@ -25,7 +24,6 @@ public class AutoSelector {
             return autoFactory.newRoutine("Do Nothing");
         };
         mAutoChooser.addRoutine("Do Nothing", doNothing);
-        mNetworkChooser.addDefault("Do Nothing", doNothing);
 
         // The template ships without paths. Only offer the example when both are deployed.
         var choreoDirectory = Filesystem.getDeployDirectory().toPath().resolve("choreo");
@@ -33,8 +31,21 @@ public class AutoSelector {
                 && Files.isRegularFile(choreoDirectory.resolve("firstPOIToSecondPOI.traj"))) {
             Supplier<AutoRoutine> example = () -> generateAuto(new ExampleAuto(autoFactory));
             mAutoChooser.addRoutine("Example Auto", example);
-            mNetworkChooser.add("Example Auto", example);
         }
+
+        registerMobilityAuto(autoFactory, choreoDirectory, "Red Mobility", "Red_Mobility");
+        registerMobilityAuto(autoFactory, choreoDirectory, "Blue Mobility", "Blue_Mobility");
+    }
+
+    private void registerMobilityAuto(AutoFactory autoFactory, java.nio.file.Path choreoDirectory,
+            String autoName, String trajectoryName) {
+        if (!Files.isRegularFile(choreoDirectory.resolve(trajectoryName + ".traj"))) {
+            return;
+        }
+
+        Supplier<AutoRoutine> mobility = () -> generateAuto(
+                new MobilityAuto(autoFactory, autoName, trajectoryName));
+        mAutoChooser.addRoutine(autoName, mobility);
     }
 
     private AutoRoutine generateAuto(AutoModeBase auto) {
@@ -43,20 +54,14 @@ public class AutoSelector {
     }
 
     public Command getSelectedCommand() {
-        // return mAutoChooser.selectedCommand();
-        return mNetworkChooser.get().get().cmd();
+        return mAutoChooser.selectedCommand();
     }
 
     public AutoChooser getAutoChooser() {
         return mAutoChooser;
     }
 
-    public LoggedNetworkChooser<Supplier<AutoRoutine>> getNetworkChooser() {
-        return mNetworkChooser;
-    }
-
     public Pose2d getSelectedAutoStartingPose() {
-        mNetworkChooser.get().get();
         return startPose;
     }
 }

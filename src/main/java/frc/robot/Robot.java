@@ -19,6 +19,7 @@ import choreo.auto.AutoFactory;
 import org.wpilib.system.Timer;
 import org.wpilib.command2.Command;
 import org.wpilib.command2.CommandScheduler;
+import org.wpilib.tunable.Tunables;
 import frc.lib.util.LoggedTracer;
 import frc.robot.auto.AutoSelector;
 import frc.robot.controlboard.ControlBoard;
@@ -66,6 +67,7 @@ public class Robot extends LoggedRobot {
                 Drive.mInstance);
 
         mAutoSelector = new AutoSelector(mAutoFactory);
+        Tunables.publish("Choosers/Auto", mAutoSelector.getAutoChooser());
 
         // Log active commands
         Map<String, Integer> commandCounts = new HashMap<>();
@@ -90,7 +92,6 @@ public class Robot extends LoggedRobot {
 
         // RobotController.setBrownoutVoltages(Volts.of(5.5));
 
-        // SmartDashboard.putData("Auto Selector", mAutoSelector.getAutoChooser());
     }
 
     @Override
